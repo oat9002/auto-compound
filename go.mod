@@ -2,7 +2,10 @@ module github.com/oat9002/auto-compound
 
 go 1.17
 
-require github.com/ethereum/go-ethereum v1.10.8
+require (
+	github.com/ethereum/go-ethereum v1.10.8
+	github.com/joho/godotenv v1.3.0
+)
 
 require (
 	github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6 // indirect
