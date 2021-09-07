@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/oat9002/auto-compound/config"
 	"github.com/oat9002/auto-compound/services"
 )
@@ -13,8 +12,8 @@ import (
 func main() {
 	conf := config.GetConfig()
 	myAddress := common.HexToAddress(conf.UserBEP20Address)
-
-	client, err := GetClient("https://bsc-dataseed.binance.org/")
+	clientService := services.NewClientService()
+	client, err := clientService.GetClient("https://bsc-dataseed.binance.org/")
 
 	if err != nil {
 		log.Fatal(err)
@@ -23,11 +22,17 @@ func main() {
 
 	pancakeSwapService, err := services.NewPancakeSwapService(client)
 
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
 	pendingCake, err := pancakeSwapService.GetPendingCakeFromSylupPool(myAddress)
 
-	fmt.Println(pendingCake)
-}
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
 
-func GetClient(networkUrl string) (*ethclient.Client, error) {
-	return ethclient.Dial(networkUrl)
+	fmt.Println(pendingCake)
 }
