@@ -21,9 +21,9 @@ func main() {
 		return
 	}
 
-	contract, err := services.GetMasterChefContract(client)
+	pancakeSwapService, err := services.NewPancakeSwapService(client)
 
-	pendingCake, err := services.GetPendingCakeFromSylupPool(contract, myAddress)
+	pendingCake, err := pancakeSwapService.GetPendingCakeFromSylupPool(myAddress)
 
 	fmt.Println(pendingCake)
 }
