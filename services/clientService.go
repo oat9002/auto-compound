@@ -5,7 +5,7 @@ import "github.com/ethereum/go-ethereum/ethclient"
 type clientService struct{}
 
 func NewClientService() *clientService {
-	clientSerivce := new(clientService)
+	clientSerivce := &clientService{}
 
 	return clientSerivce
 }

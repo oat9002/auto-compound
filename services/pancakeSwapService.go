@@ -15,10 +15,8 @@ type pancakeSwapService struct {
 }
 
 func NewPancakeSwapService(client *ethclient.Client) (*pancakeSwapService, error) {
-	service := new(pancakeSwapService)
 	contract, err := getMasterChefContract(client)
-
-	service.contract = contract
+	service := &pancakeSwapService{contract: contract}
 
 	return service, err
 }
