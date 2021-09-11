@@ -1,6 +1,6 @@
 # auto-compund
 
-## Develop in local
+## Development in local
 
 Environment is defined in `mode.conf`. Default is `production`. It will read from `.env`. Otherwise, it will read from `.dev.env` instead.
 
