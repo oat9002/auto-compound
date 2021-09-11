@@ -7,13 +7,20 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/oat9002/auto-compound/config"
 	"github.com/oat9002/auto-compound/services"
+	"github.com/oat9002/auto-compound/utils"
 )
 
 func main() {
-	conf := config.GetConfig()
-	myAddress := common.HexToAddress(conf.UserBEP20Address)
+	conf, err := config.GetConfig()
+
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	myAddress := common.HexToAddress(conf.UserAddress)
 	clientService := services.NewClientService()
-	client, err := clientService.GetClient("https://bsc-dataseed.binance.org/")
+	client, err := clientService.GetClient(conf.NetworkUrl)
 
 	if err != nil {
 		log.Fatal(err)
@@ -34,5 +41,5 @@ func main() {
 		return
 	}
 
-	fmt.Println(pendingCake)
+	fmt.Println(utils.FromWei(pendingCake))
 }

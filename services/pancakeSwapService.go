@@ -27,13 +27,13 @@ func getMasterChefContract(client *ethclient.Client) (*masterChef.MasterChef, er
 	return masterChef.NewMasterChef(pancakeMainStakingAddress, client)
 }
 
-func (p *pancakeSwapService) GetPendingCakeFromSylupPool(address common.Address) (float64, error) {
+func (p *pancakeSwapService) GetPendingCakeFromSylupPool(address common.Address) (*big.Int, error) {
 	cakePool := big.NewInt(int64(0)) // Sylup pool
 	pendingCake, err := p.contract.PendingCake(utils.GetDefaultCallOpts(address), cakePool, address)
 
 	if err != nil {
-		return 0, err
+		return big.NewInt(int64(0)), err
 	}
 
-	return utils.FromWei(pendingCake), nil
+	return pendingCake, nil
 }

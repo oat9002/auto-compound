@@ -1,6 +1,16 @@
 # auto-compund
 
+## Develop in local
+
+Environment is defined in `mode.conf`. Default is `production`. It will read from `.env`. Otherwise, it will read from `.dev.env` instead.
+
 ## How to generate pancake contract interface
+
+### Prerequisite
+
+-   docker
+
+### Step
 
 1. Clone pancake contract into this repository [link](https://github.com/pancakeswap/pancake-farm.git)
 2. Inside `pancake-farm` folder, add this config to `truffle-config.js`
