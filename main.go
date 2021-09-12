@@ -8,9 +8,11 @@ import (
 	"github.com/oat9002/auto-compound/config"
 	"github.com/oat9002/auto-compound/services"
 	"github.com/oat9002/auto-compound/utils"
+	"github.com/robfig/cron/v3"
 )
 
 func main() {
+	c := cron.New()
 	conf, err := config.GetConfig()
 
 	if err != nil {
@@ -41,5 +43,9 @@ func main() {
 		return
 	}
 
-	fmt.Println(utils.FromWei(pendingCake))
+	c.AddFunc("* * * * *", func() {
+		fmt.Println(utils.FromWei(pendingCake))
+	})
+
+	c.Run()
 }
