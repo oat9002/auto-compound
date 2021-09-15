@@ -13,17 +13,17 @@ const (
 	InternalServerError     = 500
 )
 
-type LineService struct {
+type lineService struct {
 	ApiKey string
 }
 
-func GetLineService(apikey string) *LineService {
-	lineService := &LineService{ApiKey: apikey}
+func GetLineService(apikey string) *lineService {
+	lineService := &lineService{ApiKey: apikey}
 
 	return lineService
 }
 
-func (l *LineService) Send(message string) error {
+func (l *lineService) Send(message string) error {
 	client := &http.Client{}
 	req, err := http.NewRequest("POST", "https://notify-api.line.me/api/notify", strings.NewReader(url.Values{"message": {message}}.Encode()))
 
