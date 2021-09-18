@@ -12,7 +12,6 @@ import (
 )
 
 func main() {
-	c := cron.New()
 	conf, err := config.GetConfig()
 
 	if err != nil {
@@ -43,9 +42,18 @@ func main() {
 		return
 	}
 
-	c.AddFunc("* * * * *", func() {
+	schedulerService := services.NewSchedulerService(cron.New())
+
+	_, err = schedulerService.AddFunc("* * * * *", func() {
 		fmt.Println(utils.FromWei(pendingCake))
 	})
 
-	c.Run()
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	schedulerService.RunAsync()
+
+	fmt.Scanf("Please any key to exit")
 }
