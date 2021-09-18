@@ -23,7 +23,7 @@ func NewUserService(address common.Address, lineService *lineService, pancakeSwa
 }
 
 func (u *userService) GetRewardMessage(balance map[string]*big.Int) string {
-	var toReturn = fmt.Sprintln("---Your rewards---")
+	var toReturn = fmt.Sprintln("[Your rewards]")
 
 	for key, value := range balance {
 		toReturn += fmt.Sprintln(key, ": ", utils.FromWei(value))
@@ -45,7 +45,7 @@ func (u *userService) NotifyReward() {
 
 	msg := u.GetRewardMessage(balance)
 
-	u.schedulerService.AddFunc("* * * * *", func() {
+	u.schedulerService.AddFunc("0 21 * * *", func() {
 		u.lineService.Send(msg)
 	})
 

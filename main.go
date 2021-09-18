@@ -12,6 +12,7 @@ import (
 )
 
 func main() {
+	fmt.Println("auto-compound started.")
 	conf, err := config.GetConfig()
 
 	if err != nil {
@@ -41,6 +42,6 @@ func main() {
 
 	userService.NotifyReward()
 
-	fmt.Println("Please any key to exit.")
+	fmt.Println("\nPlease any key to exit.")
 	fmt.Scanln()
 }
