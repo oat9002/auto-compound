@@ -17,7 +17,7 @@ type lineService struct {
 	ApiKey string
 }
 
-func GetLineService(apikey string) *lineService {
+func NewLineService(apikey string) *lineService {
 	lineService := &lineService{ApiKey: apikey}
 
 	return lineService
