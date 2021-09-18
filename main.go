@@ -3,11 +3,11 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/oat9002/auto-compound/config"
 	"github.com/oat9002/auto-compound/services"
-	"github.com/oat9002/auto-compound/utils"
 	"github.com/robfig/cron/v3"
 )
 
@@ -21,7 +21,7 @@ func main() {
 
 	myAddress := common.HexToAddress(conf.UserAddress)
 	clientService := services.NewClientService()
-	client, err := clientService.GetClient(conf.NetworkUrl)
+	client, err := clientService.GetClient(conf.BscNetworkUrl)
 
 	if err != nil {
 		log.Fatal(err)
@@ -35,25 +35,11 @@ func main() {
 		return
 	}
 
-	pendingCake, err := pancakeSwapService.GetPendingCakeFromSylupPool(myAddress)
-
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-
 	schedulerService := services.NewSchedulerService(cron.New())
+	lineService := services.NewLineService(&http.Client{}, conf.LineApiKey)
+	userService := services.NewUserService(myAddress, lineService, pancakeSwapService, schedulerService)
 
-	_, err = schedulerService.AddFunc("* * * * *", func() {
-		fmt.Println(utils.FromWei(pendingCake))
-	})
-
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-
-	schedulerService.RunAsync()
+	userService.NotifyReward()
 
 	fmt.Println("Please any key to exit.")
 	fmt.Scanln()

@@ -14,17 +14,17 @@ const (
 )
 
 type lineService struct {
-	ApiKey string
+	httpClient *http.Client
+	ApiKey     string
 }
 
-func NewLineService(apikey string) *lineService {
-	lineService := &lineService{ApiKey: apikey}
+func NewLineService(httpClient *http.Client, apiKey string) *lineService {
+	lineService := &lineService{httpClient: httpClient, ApiKey: apiKey}
 
 	return lineService
 }
 
 func (l *lineService) Send(message string) error {
-	client := &http.Client{}
 	req, err := http.NewRequest("POST", "https://notify-api.line.me/api/notify", strings.NewReader(url.Values{"message": {message}}.Encode()))
 
 	if err != nil {
@@ -34,7 +34,7 @@ func (l *lineService) Send(message string) error {
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Authorization", "Bearer "+l.ApiKey)
 
-	resp, err := client.Do(req)
+	resp, err := l.httpClient.Do(req)
 
 	if err != nil {
 		return err

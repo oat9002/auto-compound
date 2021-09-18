@@ -9,8 +9,9 @@ import (
 )
 
 type Config struct {
-	UserAddress string
-	NetworkUrl  string
+	UserAddress   string
+	BscNetworkUrl string
+	LineApiKey    string
 }
 
 var once sync.Once
@@ -37,7 +38,7 @@ func loadConfig() (*Config, error) {
 		return config, err
 	}
 
-	config = &Config{UserAddress: getEnv("USER_ADDRESS"), NetworkUrl: getEnv("NETWORK_URL")}
+	config = &Config{UserAddress: getEnv("USER_ADDRESS"), BscNetworkUrl: getEnv("BSC_NETWORK_URL"), LineApiKey: getEnv("LINE_API_KEY")}
 
 	return config, nil
 }
