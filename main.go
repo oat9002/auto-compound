@@ -55,5 +55,6 @@ func main() {
 
 	schedulerService.RunAsync()
 
-	fmt.Scanf("Please any key to exit")
+	fmt.Println("Please any key to exit.")
+	fmt.Scanln()
 }
