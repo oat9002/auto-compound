@@ -27,8 +27,6 @@ func loadConfig() (*Config, error) {
 	}
 
 	if mode["mode"] != "production" {
-		err = godotenv.Load(".dev.env")
-	} else {
 		err = godotenv.Load()
 	}
 

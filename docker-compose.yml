@@ -1,0 +1,7 @@
+version: "3.9"
+services:
+    auto-compound:
+        image: oat9002/auto-compound:latest
+        restart: always
+        env_file:
+            - .env

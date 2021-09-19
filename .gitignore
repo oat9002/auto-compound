@@ -15,7 +15,6 @@
 # vendor/
 
 .env
-.dev.env
 
 auto-compound
 ./pancake-farm
