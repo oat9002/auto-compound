@@ -10,13 +10,13 @@ import (
 	"github.com/oat9002/auto-compound/utils"
 )
 
-type pancakeSwapService struct {
+type PancakeSwapService struct {
 	contract *contracts.MasterChef
 }
 
-func NewPancakeSwapService(client *ethclient.Client) (*pancakeSwapService, error) {
+func NewPancakeSwapService(client *ethclient.Client) (*PancakeSwapService, error) {
 	contract, err := getMasterChefContract(client)
-	service := &pancakeSwapService{contract: contract}
+	service := &PancakeSwapService{contract: contract}
 
 	return service, err
 }
@@ -27,7 +27,7 @@ func getMasterChefContract(client *ethclient.Client) (*contracts.MasterChef, err
 	return contracts.NewMasterChef(pancakeMainStakingAddress, client)
 }
 
-func (p *pancakeSwapService) GetPendingCakeFromSylupPool(address common.Address) (*big.Int, error) {
+func (p *PancakeSwapService) GetPendingCakeFromSylupPool(address common.Address) (*big.Int, error) {
 	cakePool := big.NewInt(int64(0)) // Sylup pool
 	pendingCake, err := p.contract.PendingCake(utils.GetDefaultCallOpts(address), cakePool, address)
 

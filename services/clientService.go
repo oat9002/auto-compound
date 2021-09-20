@@ -2,14 +2,14 @@ package services
 
 import "github.com/ethereum/go-ethereum/ethclient"
 
-type clientService struct{}
+type ClientService struct{}
 
-func NewClientService() *clientService {
-	clientSerivce := &clientService{}
+func NewClientService() *ClientService {
+	clientSerivce := &ClientService{}
 
 	return clientSerivce
 }
 
-func (c *clientService) GetClient(networkUrl string) (*ethclient.Client, error) {
+func (c *ClientService) GetClient(networkUrl string) (*ethclient.Client, error) {
 	return ethclient.Dial(networkUrl)
 }
