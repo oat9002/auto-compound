@@ -20,9 +20,21 @@ func main() {
 		return
 	}
 
+	execute(conf, false)
+
+	fmt.Println("\nPlease any key to exit.")
+	fmt.Scanln()
+}
+
+func execute(conf config.Config, isTest bool) {
+	if isTest {
+		executeTest(conf)
+		return
+	}
+
 	myAddress := common.HexToAddress(conf.UserAddress)
 	clientService := services.NewClientService()
-	client, err := clientService.GetClient(conf.BscNetworkUrl)
+	client, err := clientService.GetClient(conf.NetworkUrl)
 
 	if err != nil {
 		log.Fatal(err)
@@ -41,7 +53,33 @@ func main() {
 	userService := services.NewUserService(myAddress, lineService, pancakeSwapService, schedulerService)
 
 	userService.NotifyReward()
+}
 
-	fmt.Println("\nPlease any key to exit.")
-	fmt.Scanln()
+func executeTest(conf config.Config) {
+	clientService := services.NewClientService()
+	client, err := clientService.GetClient(conf.NetworkUrl)
+
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	testContract, err := services.NewTestContractService(client, conf.ChainId, conf.UserPrivateKey)
+
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	transaction, err := testContract.Increase()
+
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	fmt.Println(transaction.Value())
+	fmt.Println(transaction.Cost())
+	fmt.Println(transaction.Gas())
+	fmt.Println(transaction.GasPrice())
 }

@@ -1,11 +1,15 @@
 package utils
 
 import (
+	"context"
+	"crypto/ecdsa"
 	"math"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 // convert wei
@@ -18,4 +22,42 @@ func FromWei(data *big.Int) float64 {
 // Get default CallOpts
 func GetDefaultCallOpts(address common.Address) *bind.CallOpts {
 	return &bind.CallOpts{Pending: false, From: address, BlockNumber: nil, Context: nil}
+}
+
+// Get default TransactionOpts
+func GetDefautlTransactionOpts(client *ethclient.Client, privateKeyStr string, chainId uint64) (*bind.TransactOpts, error) {
+	privateKey, err := crypto.HexToECDSA(privateKeyStr)
+	if err != nil {
+		return nil, err
+	}
+
+	publicKey := privateKey.Public()
+	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+	if !ok {
+		return nil, err
+	}
+
+	fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
+
+	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	gasPrice, err := client.SuggestGasPrice(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	txOpts, err := bind.NewKeyedTransactorWithChainID(privateKey, big.NewInt(int64(chainId)))
+	if err != nil {
+		return nil, err
+	}
+
+	txOpts.Nonce = big.NewInt(int64(nonce))
+	txOpts.Value = big.NewInt(0)
+	txOpts.GasLimit = uint64(3000000)
+	txOpts.GasPrice = gasPrice
+
+	return txOpts, nil
 }

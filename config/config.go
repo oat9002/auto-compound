@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"strconv"
 	"sync"
 
 	"github.com/joho/godotenv"
@@ -11,7 +12,8 @@ import (
 type Config struct {
 	UserAddress    string
 	UserPrivateKey string
-	BscNetworkUrl  string
+	NetworkUrl     string
+	ChainId        uint64
 	LineApiKey     string
 }
 
@@ -24,7 +26,7 @@ func loadConfig() (*Config, error) {
 	if err != nil {
 		log.Fatal("Error reading .env file", err)
 
-		return config, err
+		return nil, err
 	}
 
 	if mode["mode"] != "production" {
@@ -34,10 +36,24 @@ func loadConfig() (*Config, error) {
 	if err != nil {
 		log.Fatal("Error loading .env file", err)
 
-		return config, err
+		return nil, err
 	}
 
-	config = &Config{UserAddress: getEnv("USER_ADDRESS"), UserPrivateKey: getEnv("USER_PRIVATE_KEY"), BscNetworkUrl: getEnv("BSC_NETWORK_URL"), LineApiKey: getEnv("LINE_API_KEY")}
+	chainId, err := strconv.ParseUint(getEnv("CHAIN_ID"), 10, 64)
+
+	if err != nil {
+		log.Fatal("Error parsing chain id", err)
+
+		return nil, err
+	}
+
+	config = &Config{
+		UserAddress:    getEnv("USER_ADDRESS"),
+		UserPrivateKey: getEnv("USER_PRIVATE_KEY"),
+		NetworkUrl:     getEnv("NETWORK_URL"),
+		ChainId:        chainId,
+		LineApiKey:     getEnv("LINE_API_KEY"),
+	}
 
 	return config, nil
 }

@@ -2,17 +2,27 @@ package services
 
 import (
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/oat9002/auto-compound/contracts"
+	"github.com/oat9002/auto-compound/utils"
 )
 
-type testContractService struct {
-	contract *contracts.MyContract
+type TestContractService struct {
+	client     *ethclient.Client
+	contract   *contracts.MyContract
+	chainId    uint64
+	privateKey string
 }
 
-func NewTestContractService(client *ethclient.Client) (*testContractService, error) {
+func NewTestContractService(client *ethclient.Client, chainId uint64, privateKey string) (*TestContractService, error) {
 	contract, err := getMyContractContract(client)
-	service := &testContractService{contract: contract}
+	service := &TestContractService{
+		client:     client,
+		contract:   contract,
+		chainId:    chainId,
+		privateKey: privateKey,
+	}
 
 	return service, err
 }
@@ -21,4 +31,16 @@ func getMyContractContract(client *ethclient.Client) (*contracts.MyContract, err
 	contractAddress := common.HexToAddress("0x239cf537496d8DC38AD9ed1dE7D37bBCa69417D7")
 
 	return contracts.NewMyContract(contractAddress, client)
+}
+
+func (t *TestContractService) Increase() (*types.Transaction, error) {
+	txOpts, err := utils.GetDefautlTransactionOpts(t.client, t.privateKey, t.chainId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	transaction, err := t.contract.Increase(txOpts)
+
+	return transaction, err
 }

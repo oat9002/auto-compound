@@ -9,7 +9,7 @@
             "type": "go",
             "request": "launch",
             "mode": "debug",
-            "program": "${fileDirname}/main.go"
+            "program": "main.go"
         },
     ]
 }
