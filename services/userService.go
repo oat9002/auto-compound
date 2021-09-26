@@ -17,7 +17,7 @@ type UserService struct {
 }
 
 func NewUserService(address common.Address, privateKey string, lineService *LineService, pancakeSwapService *PancakeSwapService) *UserService {
-	userService := &UserService{address: address, lineService: lineService, pancakeSwapService: pancakeSwapService}
+	userService := &UserService{address: address, privateKey: privateKey, lineService: lineService, pancakeSwapService: pancakeSwapService}
 
 	return userService
 }
@@ -43,7 +43,13 @@ func (u *UserService) ProcessReward() {
 	}
 
 	if utils.FromWei(pendingCake) >= 0.5 {
-		u.pancakeSwapService.CompoundEarnCake(u.privateKey, pendingCake)
+		_, err := u.pancakeSwapService.CompoundEarnCake(u.privateKey, pendingCake)
+
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+
 		isCompound = true
 	}
 
@@ -51,7 +57,7 @@ func (u *UserService) ProcessReward() {
 
 	if isCompound {
 		balance["cake"] = big.NewInt(0)
-		msg = fmt.Sprintln(u.GetRewardMessage(balance)) + fmt.Sprintln() + fmt.Sprintln("CompoundEarnCake", ": ", utils.FromWei(pendingCake))
+		msg = fmt.Sprintln(u.GetRewardMessage(balance)) + fmt.Sprintln("CompoundEarnCake", ": ", utils.FromWei(pendingCake))
 	} else {
 		balance["cake"] = pendingCake
 		msg = fmt.Sprintln(u.GetRewardMessage(balance))
