@@ -10,6 +10,7 @@ import (
 )
 
 type Config struct {
+	IsTest         bool
 	UserAddress    string
 	UserPrivateKey string
 	NetworkUrl     string
@@ -21,6 +22,7 @@ var once sync.Once
 var config *Config
 
 func loadConfig() (*Config, error) {
+	isTest := false
 	mode, err := godotenv.Read("mode.conf")
 
 	if err != nil {
@@ -31,6 +33,7 @@ func loadConfig() (*Config, error) {
 
 	if mode["mode"] != "production" {
 		err = godotenv.Load()
+		isTest = true
 	}
 
 	if err != nil {
@@ -48,6 +51,7 @@ func loadConfig() (*Config, error) {
 	}
 
 	config = &Config{
+		IsTest:         isTest,
 		UserAddress:    getEnv("USER_ADDRESS"),
 		UserPrivateKey: getEnv("USER_PRIVATE_KEY"),
 		NetworkUrl:     getEnv("NETWORK_URL"),

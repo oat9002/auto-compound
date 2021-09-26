@@ -20,14 +20,14 @@ func main() {
 		return
 	}
 
-	execute(conf, false)
+	execute(conf)
 
 	fmt.Println("\nPlease any key to exit.")
 	fmt.Scanln()
 }
 
-func execute(conf config.Config, isTest bool) {
-	if isTest {
+func execute(conf config.Config) {
+	if conf.IsTest {
 		executeTest(conf)
 		return
 	}
@@ -41,7 +41,7 @@ func execute(conf config.Config, isTest bool) {
 		return
 	}
 
-	pancakeSwapService, err := services.NewPancakeSwapService(client)
+	pancakeSwapService, err := services.NewPancakeSwapService(client, conf.ChainId)
 
 	if err != nil {
 		log.Fatal(err)
@@ -50,9 +50,13 @@ func execute(conf config.Config, isTest bool) {
 
 	schedulerService := services.NewSchedulerService(cron.New())
 	lineService := services.NewLineService(&http.Client{}, conf.LineApiKey)
-	userService := services.NewUserService(myAddress, lineService, pancakeSwapService, schedulerService)
+	userService := services.NewUserService(myAddress, conf.UserPrivateKey, lineService, pancakeSwapService)
 
-	userService.NotifyReward()
+	schedulerService.AddFunc("0 21 * * *", func() {
+		userService.ProcessReward()
+	})
+
+	schedulerService.RunAsync()
 }
 
 func executeTest(conf config.Config) {
@@ -64,14 +68,14 @@ func executeTest(conf config.Config) {
 		return
 	}
 
-	testContract, err := services.NewTestContractService(client, conf.ChainId, conf.UserPrivateKey)
+	testContract, err := services.NewTestContractService(client, conf.ChainId)
 
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
 
-	transaction, err := testContract.Increase()
+	transaction, err := testContract.Increase(conf.UserPrivateKey)
 
 	if err != nil {
 		log.Fatal(err)

@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 
 	"github.com/oat9002/auto-compound/contracts"
@@ -11,12 +12,14 @@ import (
 )
 
 type PancakeSwapService struct {
+	client   *ethclient.Client
 	contract *contracts.MasterChef
+	chainId  uint64
 }
 
-func NewPancakeSwapService(client *ethclient.Client) (*PancakeSwapService, error) {
+func NewPancakeSwapService(client *ethclient.Client, chainId uint64) (*PancakeSwapService, error) {
 	contract, err := getMasterChefContract(client)
-	service := &PancakeSwapService{contract: contract}
+	service := &PancakeSwapService{client: client, contract: contract, chainId: chainId}
 
 	return service, err
 }
@@ -36,4 +39,16 @@ func (p *PancakeSwapService) GetPendingCakeFromSylupPool(address common.Address)
 	}
 
 	return pendingCake, nil
+}
+
+func (p *PancakeSwapService) CompoundEarnCake(privateKey string, amount *big.Int) (*types.Transaction, error) {
+	txOpts, err := utils.GetDefautlTransactionOpts(p.client, privateKey, p.chainId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	transaction, err := p.contract.EnterStaking(txOpts, amount)
+
+	return transaction, err
 }

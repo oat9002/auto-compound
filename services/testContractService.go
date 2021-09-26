@@ -9,19 +9,17 @@ import (
 )
 
 type TestContractService struct {
-	client     *ethclient.Client
-	contract   *contracts.MyContract
-	chainId    uint64
-	privateKey string
+	client   *ethclient.Client
+	contract *contracts.MyContract
+	chainId  uint64
 }
 
-func NewTestContractService(client *ethclient.Client, chainId uint64, privateKey string) (*TestContractService, error) {
+func NewTestContractService(client *ethclient.Client, chainId uint64) (*TestContractService, error) {
 	contract, err := getMyContractContract(client)
 	service := &TestContractService{
-		client:     client,
-		contract:   contract,
-		chainId:    chainId,
-		privateKey: privateKey,
+		client:   client,
+		contract: contract,
+		chainId:  chainId,
 	}
 
 	return service, err
@@ -33,8 +31,8 @@ func getMyContractContract(client *ethclient.Client) (*contracts.MyContract, err
 	return contracts.NewMyContract(contractAddress, client)
 }
 
-func (t *TestContractService) Increase() (*types.Transaction, error) {
-	txOpts, err := utils.GetDefautlTransactionOpts(t.client, t.privateKey, t.chainId)
+func (t *TestContractService) Increase(privateKey string) (*types.Transaction, error) {
+	txOpts, err := utils.GetDefautlTransactionOpts(t.client, privateKey, t.chainId)
 
 	if err != nil {
 		return nil, err
