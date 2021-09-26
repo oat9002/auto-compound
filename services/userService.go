@@ -51,7 +51,7 @@ func (u *UserService) ProcessReward() {
 
 	if isCompound {
 		balance["cake"] = big.NewInt(0)
-		msg = fmt.Sprintln(u.GetRewardMessage(balance), "\n", "CompoundEarnCake", ": ", utils.FromWei(pendingCake))
+		msg = fmt.Sprintln(u.GetRewardMessage(balance)) + fmt.Sprintln() + fmt.Sprintln("CompoundEarnCake", ": ", utils.FromWei(pendingCake))
 	} else {
 		balance["cake"] = pendingCake
 		msg = fmt.Sprintln(u.GetRewardMessage(balance))
