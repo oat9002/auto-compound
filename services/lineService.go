@@ -9,8 +9,8 @@ import (
 
 const (
 	Ok                  int = 200
-	BadRequest              = 400
-	InternalServerError     = 500
+	BadRequest          int = 400
+	InternalServerError int = 500
 )
 
 type LineService struct {
@@ -28,7 +28,7 @@ func (l *LineService) Send(message string) error {
 	req, err := http.NewRequest("POST", "https://notify-api.line.me/api/notify", strings.NewReader(url.Values{"message": {message}}.Encode()))
 
 	if err != nil {
-		return err
+		return fmt.Errorf("cannot create http request, %w", err)
 	}
 
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
@@ -37,11 +37,11 @@ func (l *LineService) Send(message string) error {
 	resp, err := l.httpClient.Do(req)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("http call failed, %w", err)
 	}
 
 	if resp.StatusCode != Ok {
-		return fmt.Errorf("Sending message to line fail")
+		return fmt.Errorf("sending message to line fail")
 	}
 
 	return nil

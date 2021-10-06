@@ -1,6 +1,8 @@
 package services
 
 import (
+	"fmt"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -35,10 +37,14 @@ func (t *TestContractService) Increase(privateKey string) (*types.Transaction, e
 	txOpts, err := utils.GetDefautlTransactionOpts(t.client, privateKey, t.chainId)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get default transaction opts failed, %w", err)
 	}
 
 	transaction, err := t.contract.Increase(txOpts)
 
-	return transaction, err
+	if err != nil {
+		return nil, fmt.Errorf("increase failed, %w", err)
+	}
+
+	return transaction, nil
 }
