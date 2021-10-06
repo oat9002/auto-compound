@@ -1,6 +1,10 @@
 package services
 
-import "github.com/ethereum/go-ethereum/ethclient"
+import (
+	"fmt"
+
+	"github.com/ethereum/go-ethereum/ethclient"
+)
 
 type ClientService struct{}
 
@@ -11,5 +15,11 @@ func NewClientService() *ClientService {
 }
 
 func (c *ClientService) GetClient(networkUrl string) (*ethclient.Client, error) {
-	return ethclient.Dial(networkUrl)
+	client, err := ethclient.Dial(networkUrl)
+
+	if err != nil {
+		return nil, fmt.Errorf("cannot create eth client, %w", err)
+	}
+
+	return client, nil
 }
