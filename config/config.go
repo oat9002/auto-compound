@@ -1,6 +1,7 @@
 package config
 
 import (
+	"flag"
 	"log"
 	"os"
 	"sync"
@@ -34,13 +35,36 @@ func loadConfig() (*Config, error) {
 		return nil, err
 	}
 
+	isDevelopmentFlag := *flag.Bool("dev", false, "Run as development mode.")
+	useTestNetWorkFlag := *flag.Bool("testnet", false, "Use test network.")
+	onlyCheckRewardFlag := *flag.Bool("onlycheck", false, "Only check the reward.")
+	userAddressFlag := *flag.String("address", "", "User public address.")
+	userPrivateKeyFlag := *flag.String("privatekey", "", "User private key.")
+	lineApiKeyFlag := *flag.String("lineapikey", "", "Send notification by line notify.")
+
+	isDevelopment := isDevelopmentFlag || getEnv("MODE") == "development"
+	useTestNetWork := useTestNetWorkFlag || getEnv("USE_TEST_NETWORK") == "true"
+	onlyCheckReward := onlyCheckRewardFlag || getEnv("ONLY_CHECK_REWARD") == "true"
+	userAddress := userAddressFlag
+	if userAddress == "" {
+		userAddress = getEnv("USER_ADDRESS")
+	}
+	userPrivateKey := userPrivateKeyFlag
+	if userPrivateKey == "" {
+		userPrivateKey = getEnv("USER_PRIVATE_KEY")
+	}
+	lineApiKey := lineApiKeyFlag
+	if lineApiKey == "" {
+		lineApiKey = getEnv("LINE_API_KEY")
+	}
+
 	config = &Config{
-		IsDevelopment:   getEnv("MODE") == "development",
-		UseTestNetwork:  getEnv("USE_TEST_NETWORK") == "true",
-		OnlyCheckReward: getEnv("ONLY_CHECK_REWARD") == "true",
-		UserAddress:     getEnv("USER_ADDRESS"),
-		UserPrivateKey:  getEnv("USER_PRIVATE_KEY"),
-		LineApiKey:      getEnv("LINE_API_KEY"),
+		IsDevelopment:   isDevelopment,
+		UseTestNetwork:  useTestNetWork,
+		OnlyCheckReward: onlyCheckReward,
+		UserAddress:     userAddress,
+		UserPrivateKey:  userPrivateKey,
+		LineApiKey:      lineApiKey,
 	}
 
 	return config, nil
