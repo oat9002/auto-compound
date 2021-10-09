@@ -20,28 +20,28 @@ func main() {
 		return
 	}
 
-	execute(conf)
+	if conf.IsDevelopment {
+		executeTest(conf)
+	} else {
+		execute(conf)
+	}
 
 	fmt.Println("\nPlease any key to exit.")
 	fmt.Scanln()
 }
 
 func execute(conf config.Config) {
-	if conf.IsTest {
-		executeTest(conf)
-		return
-	}
-
+	network, chainId := conf.GetBscNetworkAndChainId()
 	myAddress := common.HexToAddress(conf.UserAddress)
 	clientService := services.NewClientService()
-	client, err := clientService.GetClient(conf.NetworkUrl)
+	client, err := clientService.GetClient(network)
 
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
 
-	pancakeSwapService, err := services.NewPancakeSwapService(client, conf.ChainId)
+	pancakeSwapService, err := services.NewPancakeSwapService(client, uint64(chainId))
 
 	if err != nil {
 		log.Fatal(err)
@@ -57,33 +57,4 @@ func execute(conf config.Config) {
 	})
 
 	schedulerService.RunAsync()
-}
-
-func executeTest(conf config.Config) {
-	clientService := services.NewClientService()
-	client, err := clientService.GetClient(conf.NetworkUrl)
-
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-
-	testContract, err := services.NewTestContractService(client, conf.ChainId)
-
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-
-	transaction, err := testContract.Increase(conf.UserPrivateKey)
-
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-
-	fmt.Println(transaction.Value())
-	fmt.Println(transaction.Cost())
-	fmt.Println(transaction.Gas())
-	fmt.Println(transaction.GasPrice())
 }
