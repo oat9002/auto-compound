@@ -2,8 +2,8 @@ package config
 
 import (
 	"flag"
-	"log"
 	"os"
+	"strconv"
 	"sync"
 
 	"github.com/joho/godotenv"
@@ -12,7 +12,7 @@ import (
 const bscNetwork string = "https://bsc-dataseed.binance.org/"
 const bscChainId int = 56
 const bscTestNetwork string = "https://data-seed-prebsc-1-s1.binance.org:8545/"
-const bacTestChainId int = 97
+const bscTestChainId int = 97
 
 type Config struct {
 	IsDevelopment   bool
@@ -22,43 +22,44 @@ type Config struct {
 	UserAddress     string
 	UserPrivateKey  string
 	LineApiKey      string
+	GasLimit        uint64
 }
 
 var once sync.Once
 var config *Config
 
 func loadConfig() (*Config, error) {
-	err := godotenv.Load()
+	isDevelopmentFlag := flag.Bool("dev", false, "Run as development mode.")
+	useTestNetWorkFlag := flag.Bool("testnet", false, "Use test network.")
+	onlyCheckRewardFlag := flag.Bool("onlycheck", false, "Only check the reward.")
+	forceRunFlag := flag.Bool("force", false, "Force run application (One time run, ignore schedule)")
+	userAddressFlag := flag.String("address", "", "User public address.")
+	userPrivateKeyFlag := flag.String("privatekey", "", "User private key.")
+	lineApiKeyFlag := flag.String("lineapikey", "", "Send notification by line notify.")
+	gasLimitFlag := flag.Int64("gaslimit", 3000000, "Gas limit. Default: 3000000")
 
-	if err != nil {
-		log.Fatal("Error loading .env file", err)
+	flag.Parse()
+	godotenv.Load()
 
-		return nil, err
-	}
-
-	isDevelopmentFlag := *flag.Bool("dev", false, "Run as development mode.")
-	useTestNetWorkFlag := *flag.Bool("testnet", false, "Use test network.")
-	onlyCheckRewardFlag := *flag.Bool("onlycheck", false, "Only check the reward.")
-	forceRunFlag := *flag.Bool("force", false, "Force run application (One time run, ignore schedule)")
-	userAddressFlag := *flag.String("address", "", "User public address.")
-	userPrivateKeyFlag := *flag.String("privatekey", "", "User private key.")
-	lineApiKeyFlag := *flag.String("lineapikey", "", "Send notification by line notify.")
-
-	isDevelopment := isDevelopmentFlag || getEnv("MODE") == "development"
-	useTestNetWork := useTestNetWorkFlag || getEnv("USE_TEST_NETWORK") == "true"
-	onlyCheckReward := onlyCheckRewardFlag || getEnv("ONLY_CHECK_REWARD") == "true"
-	forceRun := forceRunFlag || getEnv("FORCE_RUN") == "true"
-	userAddress := userAddressFlag
-	if userAddress == "" {
+	isDevelopment := *isDevelopmentFlag || getEnv("MODE") == "development"
+	useTestNetWork := *useTestNetWorkFlag || getEnv("USE_TEST_NETWORK") == "true"
+	onlyCheckReward := *onlyCheckRewardFlag || getEnv("ONLY_CHECK_REWARD") == "true"
+	forceRun := *forceRunFlag || getEnv("FORCE_RUN") == "true"
+	userAddress := *userAddressFlag
+	if userAddress == "" && getEnv("USER_ADDRESS") != "" {
 		userAddress = getEnv("USER_ADDRESS")
 	}
-	userPrivateKey := userPrivateKeyFlag
-	if userPrivateKey == "" {
+	userPrivateKey := *userPrivateKeyFlag
+	if userPrivateKey == "" && getEnv("USER_PRIVATE_KEY") != "" {
 		userPrivateKey = getEnv("USER_PRIVATE_KEY")
 	}
-	lineApiKey := lineApiKeyFlag
-	if lineApiKey == "" {
+	lineApiKey := *lineApiKeyFlag
+	if lineApiKey == "" && getEnv("LINE_API_KEY") != "" {
 		lineApiKey = getEnv("LINE_API_KEY")
+	}
+	gasLimit := *gasLimitFlag
+	if gasLimit == 3000000 && getEnv("GAS_LIMIT") != "3000000" {
+		gasLimit, _ = strconv.ParseInt(getEnv("GAS_LIMIT"), 10, 64)
 	}
 
 	config = &Config{
@@ -69,6 +70,7 @@ func loadConfig() (*Config, error) {
 		UserAddress:     userAddress,
 		UserPrivateKey:  userPrivateKey,
 		LineApiKey:      lineApiKey,
+		GasLimit:        uint64(gasLimit),
 	}
 
 	return config, nil
@@ -96,8 +98,8 @@ func GetConfig() (Config, error) {
 
 func (c Config) GetBscNetworkAndChainId() (string, int) {
 	if c.UseTestNetwork {
-		return bscNetwork, bscChainId
+		return bscTestNetwork, bscTestChainId
 	}
 
-	return bscTestNetwork, bacTestChainId
+	return bscNetwork, bscChainId
 }

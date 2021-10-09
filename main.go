@@ -41,7 +41,7 @@ func execute(conf config.Config) {
 		return
 	}
 
-	pancakeSwapService, err := services.NewPancakeSwapService(client, uint64(chainId))
+	pancakeSwapService, err := services.NewPancakeSwapService(client, uint64(chainId), conf.GasLimit)
 
 	if err != nil {
 		log.Fatal(err)
@@ -61,5 +61,4 @@ func execute(conf config.Config) {
 
 		schedulerService.RunAsync()
 	}
-
 }

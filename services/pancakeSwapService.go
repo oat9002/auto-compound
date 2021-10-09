@@ -16,11 +16,12 @@ type PancakeSwapService struct {
 	client   *ethclient.Client
 	contract *contracts.MasterChef
 	chainId  uint64
+	gasLimit uint64
 }
 
-func NewPancakeSwapService(client *ethclient.Client, chainId uint64) (*PancakeSwapService, error) {
+func NewPancakeSwapService(client *ethclient.Client, chainId uint64, gasLimit uint64) (*PancakeSwapService, error) {
 	contract, err := getMasterChefContract(client)
-	service := &PancakeSwapService{client: client, contract: contract, chainId: chainId}
+	service := &PancakeSwapService{client: client, contract: contract, chainId: chainId, gasLimit: gasLimit}
 
 	return service, err
 }
@@ -48,7 +49,7 @@ func (p *PancakeSwapService) GetPendingCakeFromSylupPool(address common.Address)
 }
 
 func (p *PancakeSwapService) CompoundEarnCake(privateKey string, amount *big.Int) (*types.Transaction, error) {
-	txOpts, err := utils.GetDefautlTransactionOpts(p.client, privateKey, p.chainId)
+	txOpts, err := utils.GetDefautlTransactionOpts(p.client, privateKey, p.chainId, p.gasLimit)
 
 	if err != nil {
 		return nil, fmt.Errorf("get default trandaction opts failed, %w", err)

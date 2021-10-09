@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-
-	"github.com/ethereum/go-ethereum/log"
 )
 
 const (
@@ -28,8 +26,8 @@ func NewLineService(httpClient *http.Client, apiKey string) *LineService {
 
 func (l *LineService) Send(message string) error {
 	if l.ApiKey == "" {
-		log.Info("No api key for line service. Not sending message.")
-		log.Info(message)
+		fmt.Println("No api key for line service. Not sending message.")
+		fmt.Println(message)
 
 		return nil
 	}

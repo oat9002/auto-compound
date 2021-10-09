@@ -25,7 +25,7 @@ func GetDefaultCallOpts(address common.Address) *bind.CallOpts {
 }
 
 // Get default TransactionOpts
-func GetDefautlTransactionOpts(client *ethclient.Client, privateKeyStr string, chainId uint64) (*bind.TransactOpts, error) {
+func GetDefautlTransactionOpts(client *ethclient.Client, privateKeyStr string, chainId uint64, gasLimit uint64) (*bind.TransactOpts, error) {
 	privateKey, err := crypto.HexToECDSA(privateKeyStr)
 	if err != nil {
 		return nil, err
@@ -56,7 +56,7 @@ func GetDefautlTransactionOpts(client *ethclient.Client, privateKeyStr string, c
 
 	txOpts.Nonce = big.NewInt(int64(nonce))
 	txOpts.Value = big.NewInt(0)
-	txOpts.GasLimit = uint64(3000000)
+	txOpts.GasLimit = gasLimit
 	txOpts.GasPrice = gasPrice
 
 	return txOpts, nil
