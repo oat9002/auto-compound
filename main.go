@@ -52,9 +52,14 @@ func execute(conf config.Config) {
 	lineService := services.NewLineService(&http.Client{}, conf.LineApiKey)
 	userService := services.NewUserService(myAddress, conf.UserPrivateKey, lineService, pancakeSwapService)
 
-	schedulerService.AddFunc("0 21 * * *", func() {
-		userService.ProcessReward()
-	})
+	if conf.ForceRun {
+		userService.ProcessReward(conf.OnlyCheckReward)
+	} else {
+		schedulerService.AddFunc("0 21 * * *", func() {
+			userService.ProcessReward(conf.OnlyCheckReward)
+		})
 
-	schedulerService.RunAsync()
+		schedulerService.RunAsync()
+	}
+
 }

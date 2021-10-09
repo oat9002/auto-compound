@@ -32,7 +32,7 @@ func (u *UserService) GetRewardMessage(balance map[string]*big.Int) string {
 	return toReturn
 }
 
-func (u *UserService) ProcessReward() {
+func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 	var msg string
 	isCompound := false
 	pendingCake, err := u.pancakeSwapService.GetPendingCakeFromSylupPool(u.address)
@@ -42,7 +42,7 @@ func (u *UserService) ProcessReward() {
 		return
 	}
 
-	if utils.FromWei(pendingCake) >= 0.5 {
+	if utils.FromWei(pendingCake) >= 0.5 && !isOnlyCheckReward {
 		_, err := u.pancakeSwapService.CompoundEarnCake(u.privateKey, pendingCake)
 
 		if err != nil {

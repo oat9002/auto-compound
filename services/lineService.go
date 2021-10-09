@@ -29,6 +29,7 @@ func NewLineService(httpClient *http.Client, apiKey string) *LineService {
 func (l *LineService) Send(message string) error {
 	if l.ApiKey == "" {
 		log.Info("No api key for line service. Not sending message.")
+		log.Info(message)
 
 		return nil
 	}

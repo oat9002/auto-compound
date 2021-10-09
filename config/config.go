@@ -18,6 +18,7 @@ type Config struct {
 	IsDevelopment   bool
 	UseTestNetwork  bool
 	OnlyCheckReward bool
+	ForceRun        bool
 	UserAddress     string
 	UserPrivateKey  string
 	LineApiKey      string
@@ -38,6 +39,7 @@ func loadConfig() (*Config, error) {
 	isDevelopmentFlag := *flag.Bool("dev", false, "Run as development mode.")
 	useTestNetWorkFlag := *flag.Bool("testnet", false, "Use test network.")
 	onlyCheckRewardFlag := *flag.Bool("onlycheck", false, "Only check the reward.")
+	forceRunFlag := *flag.Bool("force", false, "Force run application (One time run, ignore schedule)")
 	userAddressFlag := *flag.String("address", "", "User public address.")
 	userPrivateKeyFlag := *flag.String("privatekey", "", "User private key.")
 	lineApiKeyFlag := *flag.String("lineapikey", "", "Send notification by line notify.")
@@ -45,6 +47,7 @@ func loadConfig() (*Config, error) {
 	isDevelopment := isDevelopmentFlag || getEnv("MODE") == "development"
 	useTestNetWork := useTestNetWorkFlag || getEnv("USE_TEST_NETWORK") == "true"
 	onlyCheckReward := onlyCheckRewardFlag || getEnv("ONLY_CHECK_REWARD") == "true"
+	forceRun := forceRunFlag || getEnv("FORCE_RUN") == "true"
 	userAddress := userAddressFlag
 	if userAddress == "" {
 		userAddress = getEnv("USER_ADDRESS")
@@ -62,6 +65,7 @@ func loadConfig() (*Config, error) {
 		IsDevelopment:   isDevelopment,
 		UseTestNetwork:  useTestNetWork,
 		OnlyCheckReward: onlyCheckReward,
+		ForceRun:        forceRun,
 		UserAddress:     userAddress,
 		UserPrivateKey:  userPrivateKey,
 		LineApiKey:      lineApiKey,
