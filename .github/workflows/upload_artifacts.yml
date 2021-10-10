@@ -29,3 +29,4 @@ jobs:
               with:
                   artifacts: "auto-compound*"
                   token: ${{ secrets.GITHUB_TOKEN }}
+                  allowUpdates: true
