@@ -15,14 +15,15 @@ const bscTestNetwork string = "https://data-seed-prebsc-1-s1.binance.org:8545/"
 const bscTestChainId int = 97
 
 type Config struct {
-	IsDevelopment   bool
-	UseTestNetwork  bool
-	OnlyCheckReward bool
-	ForceRun        bool
-	UserAddress     string
-	UserPrivateKey  string
-	LineApiKey      string
-	GasLimit        uint64
+	IsDevelopment            bool
+	UseTestNetwork           bool
+	OnlyCheckReward          bool
+	ForceRun                 bool
+	UserAddress              string
+	UserPrivateKey           string
+	LineApiKey               string
+	GasLimit                 uint64
+	PancakeCompoundThreshold float64
 }
 
 var once sync.Once
@@ -36,7 +37,8 @@ func loadConfig() (*Config, error) {
 	userAddressFlag := flag.String("address", "", "User public address.")
 	userPrivateKeyFlag := flag.String("privatekey", "", "User private key.")
 	lineApiKeyFlag := flag.String("lineapikey", "", "Send notification by line notify.")
-	gasLimitFlag := flag.Int64("gaslimit", 3000000, "Gas limit. Default: 3000000")
+	gasLimitFlag := flag.Uint64("gaslimit", 3000000, "Gas limit. Default: 3000000")
+	pancakeCompoundThresholdFlag := flag.Float64("pancakethreshold", 0.5, "Threshold for amount of pancake to trigger compound. Default: 0.5")
 
 	flag.Parse()
 	godotenv.Load()
@@ -59,18 +61,23 @@ func loadConfig() (*Config, error) {
 	}
 	gasLimit := *gasLimitFlag
 	if gasLimit == 3000000 && getEnv("GAS_LIMIT") != "3000000" {
-		gasLimit, _ = strconv.ParseInt(getEnv("GAS_LIMIT"), 10, 64)
+		gasLimit, _ = strconv.ParseUint(getEnv("GAS_LIMIT"), 10, 64)
+	}
+	pancakeCompoundThreshold := *pancakeCompoundThresholdFlag
+	if pancakeCompoundThreshold == 0.5 && getEnv("PANCAKE_COMPOUND_THRESHOLD") != "0.5" {
+		pancakeCompoundThreshold, _ = strconv.ParseFloat(getEnv("PANCAKE_COMPOUND_THRESHOLD"), 64)
 	}
 
 	config = &Config{
-		IsDevelopment:   isDevelopment,
-		UseTestNetwork:  useTestNetWork,
-		OnlyCheckReward: onlyCheckReward,
-		ForceRun:        forceRun,
-		UserAddress:     userAddress,
-		UserPrivateKey:  userPrivateKey,
-		LineApiKey:      lineApiKey,
-		GasLimit:        uint64(gasLimit),
+		IsDevelopment:            isDevelopment,
+		UseTestNetwork:           useTestNetWork,
+		OnlyCheckReward:          onlyCheckReward,
+		ForceRun:                 forceRun,
+		UserAddress:              userAddress,
+		UserPrivateKey:           userPrivateKey,
+		LineApiKey:               lineApiKey,
+		GasLimit:                 gasLimit,
+		PancakeCompoundThreshold: pancakeCompoundThreshold,
 	}
 
 	return config, nil
