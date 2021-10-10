@@ -30,3 +30,7 @@ jobs:
                   artifacts: "auto-compound*"
                   token: ${{ secrets.GITHUB_TOKEN }}
                   allowUpdates: true
+                  omitBody: true
+                  omitBodyDuringUpdate: true
+                  omitName: true
+                  omitNameDuringUpdate: true
