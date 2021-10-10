@@ -35,7 +35,7 @@ func loadConfig() (*Config, error) {
 	onlyCheckRewardFlag := flag.Bool("onlycheck", false, "Only check the reward.")
 	forceRunFlag := flag.Bool("force", false, "Force run application (One time run, ignore schedule)")
 	userAddressFlag := flag.String("address", "", "User public address.")
-	userPrivateKeyFlag := flag.String("privatekey", "", "User private key.")
+	userPrivateKeyFlag := flag.String("privatekey", "", "User private key. (Required if onlycheck is false)")
 	lineApiKeyFlag := flag.String("lineapikey", "", "Send notification by line notify.")
 	gasLimitFlag := flag.Uint64("gaslimit", 3000000, "Gas limit. Default: 3000000")
 	pancakeCompoundThresholdFlag := flag.Float64("pancakethreshold", 0.5, "Threshold for amount of pancake to trigger compound. Default: 0.5")
