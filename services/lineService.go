@@ -25,6 +25,13 @@ func NewLineService(httpClient *http.Client, apiKey string) *LineService {
 }
 
 func (l *LineService) Send(message string) error {
+	if l.ApiKey == "" {
+		fmt.Println("No api key for line service. Not sending message.")
+		fmt.Println(message)
+
+		return nil
+	}
+
 	req, err := http.NewRequest("POST", "https://notify-api.line.me/api/notify", strings.NewReader(url.Values{"message": {message}}.Encode()))
 
 	if err != nil {

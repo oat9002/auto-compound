@@ -10,14 +10,21 @@ import (
 )
 
 type UserService struct {
-	address            common.Address
-	privateKey         string
-	lineService        *LineService
-	pancakeSwapService *PancakeSwapService
+	address                  common.Address
+	privateKey               string
+	lineService              *LineService
+	pancakeSwapService       *PancakeSwapService
+	pancakeCompoundThreshold float64
 }
 
-func NewUserService(address common.Address, privateKey string, lineService *LineService, pancakeSwapService *PancakeSwapService) *UserService {
-	userService := &UserService{address: address, privateKey: privateKey, lineService: lineService, pancakeSwapService: pancakeSwapService}
+func NewUserService(address common.Address, privateKey string, lineService *LineService, pancakeSwapService *PancakeSwapService, pancakeCompoundThreshold float64) *UserService {
+	userService := &UserService{
+		address:                  address,
+		privateKey:               privateKey,
+		lineService:              lineService,
+		pancakeSwapService:       pancakeSwapService,
+		pancakeCompoundThreshold: pancakeCompoundThreshold,
+	}
 
 	return userService
 }
@@ -32,7 +39,7 @@ func (u *UserService) GetRewardMessage(balance map[string]*big.Int) string {
 	return toReturn
 }
 
-func (u *UserService) ProcessReward() {
+func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 	var msg string
 	isCompound := false
 	pendingCake, err := u.pancakeSwapService.GetPendingCakeFromSylupPool(u.address)
@@ -42,7 +49,7 @@ func (u *UserService) ProcessReward() {
 		return
 	}
 
-	if utils.FromWei(pendingCake) >= 0.5 {
+	if utils.FromWei(pendingCake) >= u.pancakeCompoundThreshold && !isOnlyCheckReward {
 		_, err := u.pancakeSwapService.CompoundEarnCake(u.privateKey, pendingCake)
 
 		if err != nil {

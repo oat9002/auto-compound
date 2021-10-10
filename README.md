@@ -2,7 +2,7 @@
 
 ## Development in local
 
-Environment is defined in `mode.conf`. Default is `production`. It will read from your environment variable. Otherwise, it will read from `.env` instead.
+Environment is defined in `.env` or using command-line argument, `-dev` in case using the binary file. Default is `production`.
 
 ## How to generate pancake contract interface
 

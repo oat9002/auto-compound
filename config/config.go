@@ -1,7 +1,7 @@
 package config
 
 import (
-	"log"
+	"flag"
 	"os"
 	"strconv"
 	"sync"
@@ -9,54 +9,75 @@ import (
 	"github.com/joho/godotenv"
 )
 
+const bscNetwork string = "https://bsc-dataseed.binance.org/"
+const bscChainId int = 56
+const bscTestNetwork string = "https://data-seed-prebsc-1-s1.binance.org:8545/"
+const bscTestChainId int = 97
+
 type Config struct {
-	IsTest         bool
-	UserAddress    string
-	UserPrivateKey string
-	NetworkUrl     string
-	ChainId        uint64
-	LineApiKey     string
+	IsDevelopment            bool
+	UseTestNetwork           bool
+	OnlyCheckReward          bool
+	ForceRun                 bool
+	UserAddress              string
+	UserPrivateKey           string
+	LineApiKey               string
+	GasLimit                 uint64
+	PancakeCompoundThreshold float64
 }
 
 var once sync.Once
 var config *Config
 
 func loadConfig() (*Config, error) {
-	isTest := false
-	mode, err := godotenv.Read("mode.conf")
+	isDevelopmentFlag := flag.Bool("dev", false, "Run as development mode.")
+	useTestNetWorkFlag := flag.Bool("testnet", false, "Use test network.")
+	onlyCheckRewardFlag := flag.Bool("onlycheck", false, "Only check the reward.")
+	forceRunFlag := flag.Bool("force", false, "Force run application (One time run, ignore schedule)")
+	userAddressFlag := flag.String("address", "", "User public address.")
+	userPrivateKeyFlag := flag.String("privatekey", "", "User private key. (Required if onlycheck is false)")
+	lineApiKeyFlag := flag.String("lineapikey", "", "Send notification by line notify.")
+	gasLimitFlag := flag.Uint64("gaslimit", 3000000, "Gas limit. Default: 3000000")
+	pancakeCompoundThresholdFlag := flag.Float64("pancakethreshold", 0.5, "Threshold for amount of pancake to trigger compound. Default: 0.5")
 
-	if err != nil {
-		log.Fatal("Error reading .env file", err)
+	flag.Parse()
+	godotenv.Load()
 
-		return nil, err
+	isDevelopment := *isDevelopmentFlag || getEnv("MODE") == "development"
+	useTestNetWork := *useTestNetWorkFlag || getEnv("USE_TEST_NETWORK") == "true"
+	onlyCheckReward := *onlyCheckRewardFlag || getEnv("ONLY_CHECK_REWARD") == "true"
+	forceRun := *forceRunFlag || getEnv("FORCE_RUN") == "true"
+	userAddress := *userAddressFlag
+	if userAddress == "" && getEnv("USER_ADDRESS") != "" {
+		userAddress = getEnv("USER_ADDRESS")
 	}
-
-	if mode["mode"] != "production" {
-		err = godotenv.Load()
-		isTest = true
+	userPrivateKey := *userPrivateKeyFlag
+	if userPrivateKey == "" && getEnv("USER_PRIVATE_KEY") != "" {
+		userPrivateKey = getEnv("USER_PRIVATE_KEY")
 	}
-
-	if err != nil {
-		log.Fatal("Error loading .env file", err)
-
-		return nil, err
+	lineApiKey := *lineApiKeyFlag
+	if lineApiKey == "" && getEnv("LINE_API_KEY") != "" {
+		lineApiKey = getEnv("LINE_API_KEY")
 	}
-
-	chainId, err := strconv.ParseUint(getEnv("CHAIN_ID"), 10, 64)
-
-	if err != nil {
-		log.Fatal("Error parsing chain id", err)
-
-		return nil, err
+	gasLimit := *gasLimitFlag
+	if gasLimit == 3000000 && getEnv("GAS_LIMIT") != "3000000" {
+		gasLimit, _ = strconv.ParseUint(getEnv("GAS_LIMIT"), 10, 64)
+	}
+	pancakeCompoundThreshold := *pancakeCompoundThresholdFlag
+	if pancakeCompoundThreshold == 0.5 && getEnv("PANCAKE_COMPOUND_THRESHOLD") != "0.5" {
+		pancakeCompoundThreshold, _ = strconv.ParseFloat(getEnv("PANCAKE_COMPOUND_THRESHOLD"), 64)
 	}
 
 	config = &Config{
-		IsTest:         isTest,
-		UserAddress:    getEnv("USER_ADDRESS"),
-		UserPrivateKey: getEnv("USER_PRIVATE_KEY"),
-		NetworkUrl:     getEnv("NETWORK_URL"),
-		ChainId:        chainId,
-		LineApiKey:     getEnv("LINE_API_KEY"),
+		IsDevelopment:            isDevelopment,
+		UseTestNetwork:           useTestNetWork,
+		OnlyCheckReward:          onlyCheckReward,
+		ForceRun:                 forceRun,
+		UserAddress:              userAddress,
+		UserPrivateKey:           userPrivateKey,
+		LineApiKey:               lineApiKey,
+		GasLimit:                 gasLimit,
+		PancakeCompoundThreshold: pancakeCompoundThreshold,
 	}
 
 	return config, nil
@@ -80,4 +101,12 @@ func GetConfig() (Config, error) {
 	})
 
 	return *config, err
+}
+
+func (c Config) GetBscNetworkAndChainId() (string, int) {
+	if c.UseTestNetwork {
+		return bscTestNetwork, bscTestChainId
+	}
+
+	return bscNetwork, bscChainId
 }
