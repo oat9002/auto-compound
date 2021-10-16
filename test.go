@@ -18,7 +18,7 @@ func executeTest(conf config.Config) {
 		return
 	}
 
-	testContract, err := services.NewTestContractService(client, uint64(chainId), conf.GasLimit)
+	testContract, err := services.NewTestContractService(client, uint64(chainId), conf.GasLimit, conf.GasPriceThreshold)
 
 	if err != nil {
 		log.Fatal(err)

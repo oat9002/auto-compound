@@ -41,7 +41,7 @@ func execute(conf config.Config) {
 		return
 	}
 
-	pancakeSwapService, err := services.NewPancakeSwapService(client, uint64(chainId), conf.GasLimit)
+	pancakeSwapService, err := services.NewPancakeSwapService(client, uint64(chainId), conf.GasLimit, conf.GasPriceThreshold)
 
 	if err != nil {
 		log.Fatal(err)
@@ -55,7 +55,7 @@ func execute(conf config.Config) {
 	if conf.ForceRun {
 		userService.ProcessReward(conf.OnlyCheckReward)
 	} else {
-		schedulerService.AddFunc("0 21 * * *", func() {
+		schedulerService.AddFunc(conf.Cron, func() {
 			userService.ProcessReward(conf.OnlyCheckReward)
 		})
 
