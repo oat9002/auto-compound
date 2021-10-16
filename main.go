@@ -26,8 +26,8 @@ func main() {
 		execute(conf)
 	}
 
-	fmt.Println("\nPlease any key to exit.")
-	fmt.Scanln()
+	fmt.Println("\nPlease Ctrl+C to exit.")
+	select {}
 }
 
 func execute(conf config.Config) {
