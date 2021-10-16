@@ -24,10 +24,18 @@ type Config struct {
 	LineApiKey               string
 	GasLimit                 uint64
 	PancakeCompoundThreshold float64
+	GasPriceThreshold        uint64
+	Cron                     string
 }
 
 var once sync.Once
 var config *Config
+
+const prefixEnv = "AUTO_COMPOUND_"
+const defaultGasPriceThreshold = 10
+const defaultPancakeCoumpoundThreshold = 0.5
+const defaultGasLimit = 3000000
+const defaultCron = "0 21 * * *"
 
 func loadConfig() (*Config, error) {
 	isDevelopmentFlag := flag.Bool("dev", false, "Run as development mode.")
@@ -37,36 +45,34 @@ func loadConfig() (*Config, error) {
 	userAddressFlag := flag.String("address", "", "User public address.")
 	userPrivateKeyFlag := flag.String("privatekey", "", "User private key. (Required if onlycheck is false)")
 	lineApiKeyFlag := flag.String("lineapikey", "", "Send notification by line notify.")
-	gasLimitFlag := flag.Uint64("gaslimit", 3000000, "Gas limit.")
-	pancakeCompoundThresholdFlag := flag.Float64("pancakethreshold", 0.5, "Threshold for amount of pancake to trigger compound.")
+	gasLimitFlag := flag.Uint64("gaslimit", defaultGasLimit, "Gas limit.")
+	pancakeCompoundThresholdFlag := flag.Float64("pancakethreshold", defaultPancakeCoumpoundThreshold, "Threshold for amount of pancake to trigger compound.")
+	gasPriceThresholdFlag := flag.Uint64("gaspricethreshold", defaultGasPriceThreshold, "Threshld for gas price in Wei.")
+	cronFlag := flag.String("cron", defaultCron, "Schedule for running app e.g. 0 21 * * *")
 
 	flag.Parse()
 	godotenv.Load()
 
-	isDevelopment := *isDevelopmentFlag || getEnv("MODE") == "development"
-	useTestNetWork := *useTestNetWorkFlag || getEnv("USE_TEST_NETWORK") == "true"
-	onlyCheckReward := *onlyCheckRewardFlag || getEnv("ONLY_CHECK_REWARD") == "true"
-	forceRun := *forceRunFlag || getEnv("FORCE_RUN") == "true"
-	userAddress := *userAddressFlag
-	if userAddress == "" && getEnv("USER_ADDRESS") != "" {
-		userAddress = getEnv("USER_ADDRESS")
-	}
-	userPrivateKey := *userPrivateKeyFlag
-	if userPrivateKey == "" && getEnv("USER_PRIVATE_KEY") != "" {
-		userPrivateKey = getEnv("USER_PRIVATE_KEY")
-	}
-	lineApiKey := *lineApiKeyFlag
-	if lineApiKey == "" && getEnv("LINE_API_KEY") != "" {
-		lineApiKey = getEnv("LINE_API_KEY")
-	}
-	gasLimit := *gasLimitFlag
-	if gasLimit == 3000000 && getEnv("GAS_LIMIT") != "3000000" {
-		gasLimit, _ = strconv.ParseUint(getEnv("GAS_LIMIT"), 10, 64)
-	}
-	pancakeCompoundThreshold := *pancakeCompoundThresholdFlag
-	if pancakeCompoundThreshold == 0.5 && getEnv("PANCAKE_COMPOUND_THRESHOLD") != "0.5" {
-		pancakeCompoundThreshold, _ = strconv.ParseFloat(getEnv("PANCAKE_COMPOUND_THRESHOLD"), 64)
-	}
+	isDevelopment := get("MODE", *isDevelopmentFlag, func(s string) interface{} { return s == "development" }).(bool)
+	useTestNetWork := get("USE_TEST_NETWORK", *useTestNetWorkFlag, func(s string) interface{} { return s == "true" }).(bool)
+	onlyCheckReward := get("ONLY_CHECK_REWARD", *onlyCheckRewardFlag, func(s string) interface{} { return s == "true" }).(bool)
+	forceRun := get("FORCE_RUN", *forceRunFlag, func(s string) interface{} { return s == "true" }).(bool)
+	userAddress := get("USER_ADDRESS", *userAddressFlag, func(s string) interface{} { return s }).(string)
+	userPrivateKey := get("USER_PRIVATE_KEY", *userPrivateKeyFlag, func(s string) interface{} { return s }).(string)
+	lineApiKey := get("LINE_API_KEY", *lineApiKeyFlag, func(s string) interface{} { return s }).(string)
+	gasLimit := get("GAS_LIMIT", *gasLimitFlag, func(s string) interface{} {
+		limit, _ := strconv.ParseUint(s, 10, 64)
+		return limit
+	}).(uint64)
+	pancakeCompoundThreshold := get("PANCAKE_COMPOUND_THRESHOLD", *pancakeCompoundThresholdFlag, func(s string) interface{} {
+		threshold, _ := strconv.ParseFloat(s, 64)
+		return threshold
+	}).(float64)
+	gasPriceThreashold := get("GAS_PRICE_THRESHOLD", *gasPriceThresholdFlag, func(s string) interface{} {
+		threshold, _ := strconv.ParseUint(s, 10, 64)
+		return threshold
+	}).(uint64)
+	cron := get("CRON", *cronFlag, func(s string) interface{} { return s }).(string)
 
 	config = &Config{
 		IsDevelopment:            isDevelopment,
@@ -78,15 +84,23 @@ func loadConfig() (*Config, error) {
 		LineApiKey:               lineApiKey,
 		GasLimit:                 gasLimit,
 		PancakeCompoundThreshold: pancakeCompoundThreshold,
+		GasPriceThreshold:        gasPriceThreashold,
+		Cron:                     cron,
 	}
 
 	return config, nil
 }
 
-func getEnv(env string) string {
-	const prefix = "AUTO_COMPOUND_"
+func getEnv(env string) (string, bool) {
+	return os.LookupEnv(prefixEnv + env)
+}
 
-	return os.Getenv(prefix + env)
+func get(evnName string, defaultValue interface{}, parseFunc func(string) interface{}) interface{} {
+	if env, isExist := getEnv(evnName); isExist {
+		return parseFunc(env)
+	}
+
+	return defaultValue
 }
 
 func GetConfig() (Config, error) {

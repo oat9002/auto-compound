@@ -11,19 +11,21 @@ import (
 )
 
 type TestContractService struct {
-	client   *ethclient.Client
-	contract *contracts.MyContract
-	chainId  uint64
-	gasLimit uint64
+	client            *ethclient.Client
+	contract          *contracts.MyContract
+	chainId           uint64
+	gasLimit          uint64
+	gasPriceThreshold uint64
 }
 
-func NewTestContractService(client *ethclient.Client, chainId uint64, gasLimit uint64) (*TestContractService, error) {
+func NewTestContractService(client *ethclient.Client, chainId uint64, gasLimit uint64, gasPriceThreshold uint64) (*TestContractService, error) {
 	contract, err := getMyContractContract(client)
 	service := &TestContractService{
-		client:   client,
-		contract: contract,
-		chainId:  chainId,
-		gasLimit: gasLimit,
+		client:            client,
+		contract:          contract,
+		chainId:           chainId,
+		gasLimit:          gasLimit,
+		gasPriceThreshold: gasPriceThreshold,
 	}
 
 	return service, err
@@ -36,7 +38,7 @@ func getMyContractContract(client *ethclient.Client) (*contracts.MyContract, err
 }
 
 func (t *TestContractService) Increase(privateKey string) (*types.Transaction, error) {
-	txOpts, err := utils.GetDefautlTransactionOpts(t.client, privateKey, t.chainId, t.gasLimit)
+	txOpts, err := utils.GetDefautlTransactionOpts(t.client, privateKey, t.chainId, t.gasLimit, t.gasPriceThreshold)
 
 	if err != nil {
 		return nil, fmt.Errorf("get default transaction opts failed, %w", err)

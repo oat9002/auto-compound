@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"crypto/ecdsa"
+	"fmt"
 	"math"
 	"math/big"
 
@@ -25,7 +26,7 @@ func GetDefaultCallOpts(address common.Address) *bind.CallOpts {
 }
 
 // Get default TransactionOpts
-func GetDefautlTransactionOpts(client *ethclient.Client, privateKeyStr string, chainId uint64, gasLimit uint64) (*bind.TransactOpts, error) {
+func GetDefautlTransactionOpts(client *ethclient.Client, privateKeyStr string, chainId uint64, gasLimit uint64, gasPriceThreshold uint64) (*bind.TransactOpts, error) {
 	privateKey, err := crypto.HexToECDSA(privateKeyStr)
 	if err != nil {
 		return nil, err
@@ -47,6 +48,8 @@ func GetDefautlTransactionOpts(client *ethclient.Client, privateKeyStr string, c
 	gasPrice, err := client.SuggestGasPrice(context.Background())
 	if err != nil {
 		return nil, err
+	} else if gasPrice.Uint64() > gasPriceThreshold {
+		return nil, fmt.Errorf("Gas price is above threshold, gas price: " + gasPrice.Text(10) + " wei")
 	}
 
 	txOpts, err := bind.NewKeyedTransactorWithChainID(privateKey, big.NewInt(int64(chainId)))
