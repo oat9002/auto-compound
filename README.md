@@ -1,5 +1,7 @@
 # auto-compound
 
+Currently support only staking in cake pool
+
 ## Development in local
 
 Environment is defined in `.env` or using command-line argument, `-dev` in case using the binary file. Default is `production`.
