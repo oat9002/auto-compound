@@ -54,6 +54,8 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 
 		if err != nil {
 			log.Fatal(err)
+			u.lineService.Send(err.Error())
+
 			return
 		}
 
@@ -64,10 +66,10 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 
 	if isCompound {
 		balance["cake"] = big.NewInt(0)
-		msg = fmt.Sprintln(u.GetRewardMessage(balance)) + fmt.Sprintln("CompoundEarnCake", ": ", utils.FromWei(pendingCake))
+		msg = fmt.Sprint(u.GetRewardMessage(balance)) + fmt.Sprintln("CompoundEarnCake", ": ", utils.FromWei(pendingCake))
 	} else {
 		balance["cake"] = pendingCake
-		msg = fmt.Sprintln(u.GetRewardMessage(balance))
+		msg = fmt.Sprint(u.GetRewardMessage(balance))
 	}
 
 	u.lineService.Send(msg)
