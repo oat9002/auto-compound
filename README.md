@@ -1,4 +1,4 @@
-# auto-compund
+# auto-compound
 
 ## Development in local
 
