@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/oat9002/auto-compound/config"
 	"github.com/oat9002/auto-compound/services"
+	"github.com/patrickmn/go-cache"
 	"github.com/robfig/cron/v3"
 )
 
@@ -50,7 +52,8 @@ func execute(conf config.Config) {
 
 	schedulerService := services.NewSchedulerService(cron.New())
 	lineService := services.NewLineService(&http.Client{}, conf.LineApiKey)
-	userService := services.NewUserService(myAddress, conf.UserPrivateKey, lineService, pancakeSwapService, conf.PancakeCompoundThreshold)
+	cacheService := services.NewCacheService(cache.DefaultExpiration, 10*time.Minute)
+	userService := services.NewUserService(myAddress, conf.UserPrivateKey, lineService, pancakeSwapService, conf.PancakeCompoundThreshold, cacheService)
 
 	if conf.ForceRun {
 		userService.ProcessReward(conf.OnlyCheckReward)
