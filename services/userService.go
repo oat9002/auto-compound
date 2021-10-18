@@ -57,7 +57,7 @@ func (u *UserService) GetRewardMessage(balance map[string]balanceInfo) string {
 			previousAmount := utils.FromWei(value.previousAmount)
 			increasePercent := math.Round(((amount-previousAmount)*100/amount)*math.Pow10(2)) / math.Pow10(2)
 
-			toReturn += fmt.Sprintln("↑ ", increasePercent, "%")
+			toReturn += fmt.Sprintln(" ↑ ", increasePercent, "%")
 		} else {
 			toReturn += fmt.Sprintln()
 		}
@@ -67,7 +67,6 @@ func (u *UserService) GetRewardMessage(balance map[string]balanceInfo) string {
 }
 
 func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
-	var msg string
 	isCompoundCake := false
 	pendingCake, err := u.pancakeSwapService.GetPendingCakeFromSylupPool(u.address)
 
@@ -96,7 +95,7 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 	} else {
 		balance["cake"] = balanceInfo{amount: pendingCake, previousAmount: nil, isCompound: isCompoundCake}
 	}
-
+	msg := u.GetRewardMessage(balance)
 	u.lineService.Send(msg)
 	u.cacheService.SetWithoutExpiry(previousPendingCakeCacheKey, pendingCake)
 }

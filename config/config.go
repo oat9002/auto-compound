@@ -35,7 +35,7 @@ const prefixEnv = "AUTO_COMPOUND_"
 const defaultGasPriceThreshold = 10
 const defaultPancakeCoumpoundThreshold = 0.5
 const defaultGasLimit = 3000000
-const defaultCron = "0 21 * * *"
+const defaultCron = "0 */6 * * *"
 
 func loadConfig() (*Config, error) {
 	isDevelopmentFlag := flag.Bool("dev", false, "Run as development mode.")
@@ -48,7 +48,7 @@ func loadConfig() (*Config, error) {
 	gasLimitFlag := flag.Uint64("gaslimit", defaultGasLimit, "Gas limit.")
 	pancakeCompoundThresholdFlag := flag.Float64("pancakethreshold", defaultPancakeCoumpoundThreshold, "Threshold for amount of pancake to trigger compound.")
 	gasPriceThresholdFlag := flag.Uint64("gaspricethreshold", defaultGasPriceThreshold, "Threshld for gas price in Wei.")
-	cronFlag := flag.String("cron", defaultCron, "Schedule for running app e.g. 0 21 * * *")
+	cronFlag := flag.String("cron", defaultCron, "Schedule for running app e.g. 0 */6 * * *")
 
 	flag.Parse()
 	godotenv.Load()

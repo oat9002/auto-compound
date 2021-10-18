@@ -58,9 +58,13 @@ func execute(conf config.Config) {
 	if conf.ForceRun {
 		userService.ProcessReward(conf.OnlyCheckReward)
 	} else {
-		schedulerService.AddFunc(conf.Cron, func() {
+		_, err := schedulerService.AddFunc(conf.Cron, func() {
 			userService.ProcessReward(conf.OnlyCheckReward)
 		})
+
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		schedulerService.RunAsync()
 	}
