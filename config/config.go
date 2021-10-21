@@ -32,7 +32,7 @@ var once sync.Once
 var config *Config
 
 const prefixEnv = "AUTO_COMPOUND_"
-const defaultGasPriceThreshold = 10
+const defaultGasPriceThreshold = 10000000000
 const defaultPancakeCoumpoundThreshold = 0.5
 const defaultGasLimit = 3000000
 const defaultCron = "0 */6 * * *"
