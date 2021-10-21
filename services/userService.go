@@ -83,7 +83,7 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 			u.lineService.Send(err.Error())
 
 			return
-		}∏
+		}
 
 		isCompoundCake = true
 	}
