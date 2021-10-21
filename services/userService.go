@@ -71,7 +71,7 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 	pendingCake, err := u.pancakeSwapService.GetPendingCakeFromSylupPool(u.address)
 
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err.Error())
 		return
 	}
 
@@ -79,11 +79,11 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 		_, err := u.pancakeSwapService.CompoundEarnCake(u.privateKey, pendingCake)
 
 		if err != nil {
-			log.Fatal(err)
+			fmt.Println(err.Error())
 			u.lineService.Send(err.Error())
 
 			return
-		}
+		}∏
 
 		isCompoundCake = true
 	}
