@@ -2,7 +2,6 @@ package services
 
 import (
 	"fmt"
-	"log"
 	"math"
 	"math/big"
 	"strings"
