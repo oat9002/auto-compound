@@ -5,7 +5,6 @@ RUN apk add --no-cache gcc musl-dev linux-headers git
 
 WORKDIR /app
 
-COPY mode.conf ./
 COPY go.mod ./
 COPY go.sum ./
 COPY config ./config
@@ -20,7 +19,7 @@ RUN go build -o /auto-compound
 # Runner
 FROM alpine:latest  
 
-RUN apk add --no-cache gcc musl-dev linux-headers git
+# RUN apk add --no-cache gcc
 
 WORKDIR /app
 
