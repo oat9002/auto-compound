@@ -52,7 +52,7 @@ func (u *UserService) GetRewardMessage(balance map[string]balanceInfo) string {
 			toReturn += fmt.Sprint(key, ": ", amount)
 		}
 
-		if value.previousAmount != nil {
+		if value.previousAmount != nil && !value.isCompound {
 			previousAmount := utils.FromWei(value.previousAmount)
 			increasePercent := math.Round(((amount-previousAmount)*100/amount)*math.Pow10(2)) / math.Pow10(2)
 
