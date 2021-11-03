@@ -52,7 +52,10 @@ func (u *UserService) GetRewardMessage(balance map[string]balanceInfo) string {
 		amount := utils.FromWei(value.amount)
 
 		if value.isCompound {
-			toReturn += fmt.Sprint(key, ": ", 0, " Compound: ", amount, "Gas Fee: ", value.gasFee, " BNB")
+			toReturn += fmt.Sprint(key, ": ", 0, " Compound: ", amount)
+			if value.gasFee != 0 {
+				toReturn += fmt.Sprint(" Gas Fee: ", value.gasFee, " BNB")
+			}
 		} else {
 			toReturn += fmt.Sprint(key, ": ", amount)
 		}
@@ -71,10 +74,6 @@ func (u *UserService) GetRewardMessage(balance map[string]balanceInfo) string {
 }
 
 func (u *UserService) handleError(err error) {
-	if err == nil {
-		return
-	}
-
 	fmt.Println(err.Error())
 	u.lineService.Send(err.Error())
 }
@@ -84,18 +83,28 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 	gasFee := float64(0)
 	pendingCake, err := u.pancakeSwapService.GetPendingCakeFromSylupPool(u.address)
 
-	u.handleError(err)
+	if err != nil {
+		u.handleError(err)
+		return
+	}
 
 	if utils.FromWei(pendingCake) >= u.pancakeCompoundThreshold && !isOnlyCheckReward {
 		tx, err := u.pancakeSwapService.CompoundEarnCake(u.privateKey, pendingCake)
 
-		u.handleError(err)
+		if err != nil {
+			u.handleError(err)
+			return
+		}
 
 		receipt, err := u.client.TransactionReceipt(context.Background(), tx.Hash())
 
-		u.handleError(err)
+		if err != nil {
+			u.handleError(err)
+		}
 
-		gasFee = math.Round(float64(receipt.GasUsed)*utils.FromWei(tx.GasPrice())*math.Pow10(6)) / math.Pow10(6)
+		if receipt != nil {
+			gasFee = math.Round(float64(receipt.GasUsed)*utils.FromWei(tx.GasPrice())*math.Pow10(6)) / math.Pow10(6)
+		}
 
 		isCompoundCake = true
 	}
