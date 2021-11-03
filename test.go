@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/oat9002/auto-compound/config"
 	"github.com/oat9002/auto-compound/services"
@@ -32,8 +34,16 @@ func executeTest(conf config.Config) {
 		return
 	}
 
+	receipt, err := client.TransactionReceipt(context.Background(), transaction.Hash())
+
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
 	fmt.Println(transaction.Value())
 	fmt.Println(transaction.Cost())
 	fmt.Println(transaction.Gas())
-	fmt.Println(transaction.GasPrice())
+	fmt.Println("gas price: " + transaction.GasPrice().Text(10))
+	fmt.Println("gas use: " + strconv.FormatUint(receipt.GasUsed, 10))
 }
