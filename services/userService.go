@@ -1,12 +1,14 @@
 package services
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"math/big"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/oat9002/auto-compound/utils"
 )
 
@@ -19,15 +21,17 @@ type UserService struct {
 	pancakeSwapService       *PancakeSwapService
 	pancakeCompoundThreshold float64
 	cacheService             *CacheService
+	client                   *ethclient.Client
 }
 
 type balanceInfo struct {
 	amount         *big.Int
 	previousAmount *big.Int
 	isCompound     bool
+	gasFee         float64
 }
 
-func NewUserService(address common.Address, privateKey string, lineService *LineService, pancakeSwapService *PancakeSwapService, pancakeCompoundThreshold float64, cacheService *CacheService) *UserService {
+func NewUserService(address common.Address, privateKey string, lineService *LineService, pancakeSwapService *PancakeSwapService, pancakeCompoundThreshold float64, cacheService *CacheService, client *ethclient.Client) *UserService {
 	userService := &UserService{
 		address:                  address,
 		privateKey:               privateKey,
@@ -35,6 +39,7 @@ func NewUserService(address common.Address, privateKey string, lineService *Line
 		pancakeSwapService:       pancakeSwapService,
 		pancakeCompoundThreshold: pancakeCompoundThreshold,
 		cacheService:             cacheService,
+		client:                   client,
 	}
 
 	return userService
@@ -48,11 +53,14 @@ func (u *UserService) GetRewardMessage(balance map[string]balanceInfo) string {
 
 		if value.isCompound {
 			toReturn += fmt.Sprint(key, ": ", 0, " Compound: ", amount)
+			if value.gasFee != 0 {
+				toReturn += fmt.Sprint(" Gas Fee: ", value.gasFee, " BNB")
+			}
 		} else {
 			toReturn += fmt.Sprint(key, ": ", amount)
 		}
 
-		if value.previousAmount != nil {
+		if value.previousAmount != nil && !value.isCompound && amount > 0 {
 			previousAmount := utils.FromWei(value.previousAmount)
 			increasePercent := math.Round(((amount-previousAmount)*100/amount)*math.Pow10(2)) / math.Pow10(2)
 
@@ -65,23 +73,37 @@ func (u *UserService) GetRewardMessage(balance map[string]balanceInfo) string {
 	return strings.TrimSuffix(toReturn, "\n")
 }
 
+func (u *UserService) handleError(err error) {
+	fmt.Println(err.Error())
+	u.lineService.Send(err.Error())
+}
+
 func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 	isCompoundCake := false
+	gasFee := float64(0)
 	pendingCake, err := u.pancakeSwapService.GetPendingCakeFromSylupPool(u.address)
 
 	if err != nil {
-		fmt.Println(err.Error())
+		u.handleError(err)
 		return
 	}
 
 	if utils.FromWei(pendingCake) >= u.pancakeCompoundThreshold && !isOnlyCheckReward {
-		_, err := u.pancakeSwapService.CompoundEarnCake(u.privateKey, pendingCake)
+		tx, err := u.pancakeSwapService.CompoundEarnCake(u.privateKey, pendingCake)
 
 		if err != nil {
-			fmt.Println(err.Error())
-			u.lineService.Send(err.Error())
-
+			u.handleError(err)
 			return
+		}
+
+		receipt, err := u.client.TransactionReceipt(context.Background(), tx.Hash())
+
+		if err != nil {
+			u.handleError(err)
+		}
+
+		if receipt != nil {
+			gasFee = math.Round(float64(receipt.GasUsed)*utils.FromWei(tx.GasPrice())*math.Pow10(6)) / math.Pow10(6)
 		}
 
 		isCompoundCake = true
@@ -90,9 +112,9 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 	balance := make(map[string]balanceInfo)
 
 	if previousPendingCake, foundPreviousPendingCake := u.cacheService.Get(previousPendingCakeCacheKey); foundPreviousPendingCake {
-		balance["cake"] = balanceInfo{amount: pendingCake, previousAmount: previousPendingCake.(*big.Int), isCompound: isCompoundCake}
+		balance["cake"] = balanceInfo{amount: pendingCake, previousAmount: previousPendingCake.(*big.Int), isCompound: isCompoundCake, gasFee: gasFee}
 	} else {
-		balance["cake"] = balanceInfo{amount: pendingCake, previousAmount: nil, isCompound: isCompoundCake}
+		balance["cake"] = balanceInfo{amount: pendingCake, previousAmount: nil, isCompound: isCompoundCake, gasFee: gasFee}
 	}
 	msg := u.GetRewardMessage(balance)
 	u.lineService.Send(msg)
