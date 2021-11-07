@@ -34,3 +34,20 @@ jobs:
                   omitBodyDuringUpdate: true
                   omitName: true
                   omitNameDuringUpdate: true
+
+    build_docker:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+
+            - name: Login to Docker Hub
+              uses: docker/login-action@v1
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+            - name: Docker build
+              run: docker build -t oat9002/auto-compound:latest .
+
+            - name: Docker publish
+              run: docker push oat9002/auto-compound
