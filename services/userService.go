@@ -28,7 +28,7 @@ type balanceInfo struct {
 	amount         *big.Int
 	previousAmount *big.Int
 	isCompound     bool
-	gasFee         uint64
+	gasFee         float64
 }
 
 func NewUserService(address common.Address, privateKey string, lineService *LineService, pancakeSwapService *PancakeSwapService, pancakeCompoundThreshold float64, cacheService *CacheService, client *ethclient.Client) *UserService {
@@ -60,7 +60,7 @@ func (u *UserService) GetRewardMessage(balance map[string]balanceInfo) string {
 			toReturn += fmt.Sprint(key, ": ", amount)
 		}
 
-		if value.previousAmount != nil && !value.isCompound {
+		if value.previousAmount != nil && !value.isCompound && amount > 0 {
 			previousAmount := utils.FromWei(value.previousAmount)
 			increasePercent := math.Round(((amount-previousAmount)*100/amount)*math.Pow10(2)) / math.Pow10(2)
 
