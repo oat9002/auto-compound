@@ -13,24 +13,37 @@ import (
 )
 
 type PancakeSwapService struct {
-	client            *ethclient.Client
-	contract          *contracts.MasterChef
-	chainId           uint64
-	gasLimit          uint64
-	gasPriceThreshold uint64
+	client                *ethclient.Client
+	masterChefContract    *contracts.MasterChef
+	smartChefInitilizable *contracts.SmartChefInitializable
+	chainId               uint64
+	gasLimit              uint64
+	gasPriceThreshold     uint64
 }
 
 func NewPancakeSwapService(client *ethclient.Client, chainId uint64, gasLimit uint64, gasPriceThreshold uint64) (*PancakeSwapService, error) {
-	contract, err := getMasterChefContract(client)
-	service := &PancakeSwapService{
-		client:            client,
-		contract:          contract,
-		chainId:           chainId,
-		gasLimit:          gasLimit,
-		gasPriceThreshold: gasPriceThreshold,
+	masterChefContract, err := getMasterChefContract(client)
+
+	if err != nil {
+		return nil, err
 	}
 
-	return service, err
+	smartChefInitializable, err := getSmartChefInitializable(client)
+
+	if err != nil {
+		return nil, err
+	}
+
+	service := &PancakeSwapService{
+		client:                client,
+		masterChefContract:    masterChefContract,
+		smartChefInitilizable: smartChefInitializable,
+		chainId:               chainId,
+		gasLimit:              gasLimit,
+		gasPriceThreshold:     gasPriceThreshold,
+	}
+
+	return service, nil
 }
 
 func getMasterChefContract(client *ethclient.Client) (*contracts.MasterChef, error) {
@@ -44,15 +57,36 @@ func getMasterChefContract(client *ethclient.Client) (*contracts.MasterChef, err
 	return contract, nil
 }
 
+func getSmartChefInitializable(client *ethclient.Client) (*contracts.SmartChefInitializable, error) {
+	contractAddress := common.HexToAddress("0x6f660C58723922c6f866a058199FF4881019B4B5") // Beta token
+	contract, err := contracts.NewSmartChefInitializable(contractAddress, client)
+
+	if err != nil {
+		return nil, fmt.Errorf("create smartChefInitializable contract failed, %w", err)
+	}
+
+	return contract, nil
+}
+
 func (p *PancakeSwapService) GetPendingCakeFromSylupPool(address common.Address) (*big.Int, error) {
 	cakePool := big.NewInt(int64(0)) // Sylup pool
-	pendingCake, err := p.contract.PendingCake(utils.GetDefaultCallOpts(address), cakePool, address)
+	pendingCake, err := p.masterChefContract.PendingCake(utils.GetDefaultCallOpts(address), cakePool, address)
 
 	if err != nil {
 		return big.NewInt(int64(0)), fmt.Errorf("get pending cake failed, %w", err)
 	}
 
 	return pendingCake, nil
+}
+
+func (p *PancakeSwapService) GetPendingBetaFromSylupPool(address common.Address) (*big.Int, error) {
+	pendingBeta, err := p.smartChefInitilizable.PendingReward(utils.GetDefaultCallOpts(address), address)
+
+	if err != nil {
+		return big.NewInt(int64(0)), fmt.Errorf("get pending beta failed, %w", err)
+	}
+
+	return pendingBeta, nil
 }
 
 func (p *PancakeSwapService) CompoundEarnCake(privateKey string, amount *big.Int) (*types.Transaction, error) {
@@ -62,7 +96,7 @@ func (p *PancakeSwapService) CompoundEarnCake(privateKey string, amount *big.Int
 		return nil, fmt.Errorf("get default trandaction opts failed, %w", err)
 	}
 
-	transaction, err := p.contract.EnterStaking(txOpts, amount)
+	transaction, err := p.masterChefContract.EnterStaking(txOpts, amount)
 
 	if err != nil {
 		return nil, fmt.Errorf("enter staking failed, %w", err)

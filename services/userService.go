@@ -88,6 +88,13 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 		return
 	}
 
+	pendingBeta, err := u.pancakeSwapService.GetPendingBetaFromSylupPool(u.address)
+
+	if err != nil {
+		u.handleError(err)
+		return
+	}
+
 	if utils.FromWei(pendingCake) >= u.pancakeCompoundThreshold && !isOnlyCheckReward {
 		tx, err := u.pancakeSwapService.CompoundEarnCake(u.privateKey, pendingCake)
 
@@ -116,6 +123,7 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 	} else {
 		balance["cake"] = balanceInfo{amount: pendingCake, previousAmount: nil, isCompound: isCompoundCake, gasFee: gasFee}
 	}
+
 	msg := u.GetRewardMessage(balance)
 	u.lineService.Send(msg)
 	u.cacheService.SetWithoutExpiry(previousPendingCakeCacheKey, pendingCake)
