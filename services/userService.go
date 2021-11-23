@@ -13,6 +13,7 @@ import (
 )
 
 const previousPendingCakeCacheKey = "pendingCakeSylupPool"
+const previousPendingBetaCacheKey = "pendingBetaSylupPool"
 
 type UserService struct {
 	address                  common.Address
@@ -122,6 +123,12 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 		balance["cake"] = balanceInfo{amount: pendingCake, previousAmount: previousPendingCake.(*big.Int), isCompound: isCompoundCake, gasFee: gasFee}
 	} else {
 		balance["cake"] = balanceInfo{amount: pendingCake, previousAmount: nil, isCompound: isCompoundCake, gasFee: gasFee}
+	}
+
+	if previousPendingBeta, foundPreviousPendingBeta := u.cacheService.Get(previousPendingBetaCacheKey); foundPreviousPendingBeta {
+		balance["beta"] = balanceInfo{amount: pendingBeta, previousAmount: previousPendingBeta.(*big.Int), isCompound: false, gasFee: 0}
+	} else {
+		balance["beta"] = balanceInfo{amount: pendingBeta, previousAmount: nil, isCompound: false, gasFee: 0}
 	}
 
 	msg := u.GetRewardMessage(balance)
