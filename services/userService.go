@@ -13,6 +13,7 @@ import (
 )
 
 const previousPendingCakeCacheKey = "pendingCakeSylupPool"
+const previousPendingBetaCacheKey = "pendingBetaSylupPool"
 
 type UserService struct {
 	address                  common.Address
@@ -88,6 +89,13 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 		return
 	}
 
+	pendingBeta, err := u.pancakeSwapService.GetPendingBetaFromSylupPool(u.address)
+
+	if err != nil {
+		u.handleError(err)
+		return
+	}
+
 	if utils.FromWei(pendingCake) >= u.pancakeCompoundThreshold && !isOnlyCheckReward {
 		tx, err := u.pancakeSwapService.CompoundEarnCake(u.privateKey, pendingCake)
 
@@ -116,6 +124,13 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 	} else {
 		balance["cake"] = balanceInfo{amount: pendingCake, previousAmount: nil, isCompound: isCompoundCake, gasFee: gasFee}
 	}
+
+	if previousPendingBeta, foundPreviousPendingBeta := u.cacheService.Get(previousPendingBetaCacheKey); foundPreviousPendingBeta {
+		balance["beta"] = balanceInfo{amount: pendingBeta, previousAmount: previousPendingBeta.(*big.Int), isCompound: false, gasFee: 0}
+	} else {
+		balance["beta"] = balanceInfo{amount: pendingBeta, previousAmount: nil, isCompound: false, gasFee: 0}
+	}
+
 	msg := u.GetRewardMessage(balance)
 	u.lineService.Send(msg)
 	u.cacheService.SetWithoutExpiry(previousPendingCakeCacheKey, pendingCake)
