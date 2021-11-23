@@ -1,6 +1,7 @@
 # auto-compound
 
-Currently support only staking in cake pool
+- Query and Auto compound following threshold for cake-cake pool
+- Query pending reward for Beta
 
 ## Development in local
 
