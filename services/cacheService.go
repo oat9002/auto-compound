@@ -24,3 +24,7 @@ func (c *CacheService) SetWithoutExpiry(key string, value interface{}) {
 func (c *CacheService) Get(key string) (interface{}, bool) {
 	return c.cache.Get(key)
 }
+
+func (c *CacheService) Delete(key string) {
+	c.cache.Delete(key)
+}

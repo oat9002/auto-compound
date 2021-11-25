@@ -30,6 +30,7 @@ type balanceInfo struct {
 	previousAmount *big.Int
 	isCompound     bool
 	gasFee         float64
+	cacheKey       string
 }
 
 func NewUserService(address common.Address, privateKey string, lineService *LineService, pancakeSwapService *PancakeSwapService, pancakeCompoundThreshold float64, cacheService *CacheService, client *ethclient.Client) *UserService {
@@ -57,6 +58,8 @@ func (u *UserService) GetRewardMessage(balance map[string]balanceInfo) string {
 			if value.gasFee != 0 {
 				toReturn += fmt.Sprint(" Gas Fee: ", value.gasFee, " BNB")
 			}
+
+			u.cacheService.Delete(value.cacheKey)
 		} else {
 			toReturn += fmt.Sprint(key, ": ", amount)
 		}
@@ -120,18 +123,19 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 	balance := make(map[string]balanceInfo)
 
 	if previousPendingCake, foundPreviousPendingCake := u.cacheService.Get(previousPendingCakeCacheKey); foundPreviousPendingCake {
-		balance["cake"] = balanceInfo{amount: pendingCake, previousAmount: previousPendingCake.(*big.Int), isCompound: isCompoundCake, gasFee: gasFee}
+		balance["cake"] = balanceInfo{amount: pendingCake, previousAmount: previousPendingCake.(*big.Int), isCompound: isCompoundCake, gasFee: gasFee, cacheKey: previousPendingCakeCacheKey}
 	} else {
-		balance["cake"] = balanceInfo{amount: pendingCake, previousAmount: nil, isCompound: isCompoundCake, gasFee: gasFee}
+		balance["cake"] = balanceInfo{amount: pendingCake, previousAmount: nil, isCompound: isCompoundCake, gasFee: gasFee, cacheKey: previousPendingCakeCacheKey}
 	}
 
 	if previousPendingBeta, foundPreviousPendingBeta := u.cacheService.Get(previousPendingBetaCacheKey); foundPreviousPendingBeta {
-		balance["beta"] = balanceInfo{amount: pendingBeta, previousAmount: previousPendingBeta.(*big.Int), isCompound: false, gasFee: 0}
+		balance["beta"] = balanceInfo{amount: pendingBeta, previousAmount: previousPendingBeta.(*big.Int), isCompound: false, gasFee: 0, cacheKey: previousPendingBetaCacheKey}
 	} else {
-		balance["beta"] = balanceInfo{amount: pendingBeta, previousAmount: nil, isCompound: false, gasFee: 0}
+		balance["beta"] = balanceInfo{amount: pendingBeta, previousAmount: nil, isCompound: false, gasFee: 0, cacheKey: previousPendingBetaCacheKey}
 	}
 
 	msg := u.GetRewardMessage(balance)
 	u.lineService.Send(msg)
 	u.cacheService.SetWithoutExpiry(previousPendingCakeCacheKey, pendingCake)
+	u.cacheService.SetWithoutExpiry(previousPendingBetaCacheKey, pendingBeta)
 }
