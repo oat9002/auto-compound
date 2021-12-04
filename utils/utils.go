@@ -9,6 +9,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
@@ -63,4 +64,14 @@ func GetDefautlTransactionOpts(client *ethclient.Client, privateKeyStr string, c
 	txOpts.GasPrice = gasPrice
 
 	return txOpts, nil
+}
+
+func GetGasFree(client *ethclient.Client, tx *types.Transaction) (float64, error) {
+	receipt, err := client.TransactionReceipt(context.Background(), tx.Hash())
+
+	if err != nil {
+		panic("")
+	}
+
+	return math.Round(float64(receipt.GasUsed)*FromWei(tx.GasPrice())*math.Pow10(6)) / math.Pow10(6), nil
 }

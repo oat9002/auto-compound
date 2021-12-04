@@ -1,7 +1,6 @@
 package services
 
 import (
-	"context"
 	"fmt"
 	"math"
 	"math/big"
@@ -82,9 +81,27 @@ func (u *UserService) handleError(err error) {
 	u.lineService.Send(err.Error())
 }
 
+func (u *UserService) compoundCake(pendingCake *big.Int, isOnlyCheckReward bool) (bool, float64, error) {
+	if utils.FromWei(pendingCake) < u.pancakeCompoundThreshold && isOnlyCheckReward {
+		return false, 0, nil
+	}
+
+	tx, err := u.pancakeSwapService.CompoundEarnCake(u.privateKey, pendingCake)
+
+	if err != nil {
+		return false, 0, err
+	}
+
+	gasFee, err := utils.GetGasFree(u.client, tx)
+
+	if err != nil {
+		return false, 0, err
+	}
+
+	return true, gasFee, nil
+}
+
 func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
-	isCompoundCake := false
-	gasFee := float64(0)
 	pendingCake, err := u.pancakeSwapService.GetPendingCakeFromSylupPool(u.address)
 
 	if err != nil {
@@ -99,33 +116,19 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 		return
 	}
 
-	if utils.FromWei(pendingCake) >= u.pancakeCompoundThreshold && !isOnlyCheckReward {
-		tx, err := u.pancakeSwapService.CompoundEarnCake(u.privateKey, pendingCake)
+	isCompoundCake, compoundCakeGasFee, err := u.compoundCake(pendingCake, isOnlyCheckReward)
 
-		if err != nil {
-			u.handleError(err)
-			return
-		}
-
-		receipt, err := u.client.TransactionReceipt(context.Background(), tx.Hash())
-
-		if err != nil {
-			u.handleError(err)
-		}
-
-		if receipt != nil {
-			gasFee = math.Round(float64(receipt.GasUsed)*utils.FromWei(tx.GasPrice())*math.Pow10(6)) / math.Pow10(6)
-		}
-
-		isCompoundCake = true
+	if err != nil {
+		u.handleError(err)
+		return
 	}
 
 	balance := make(map[string]balanceInfo)
 
 	if previousPendingCake, foundPreviousPendingCake := u.cacheService.Get(previousPendingCakeCacheKey); foundPreviousPendingCake {
-		balance["cake"] = balanceInfo{amount: pendingCake, previousAmount: previousPendingCake.(*big.Int), isCompound: isCompoundCake, gasFee: gasFee, cacheKey: previousPendingCakeCacheKey}
+		balance["cake"] = balanceInfo{amount: pendingCake, previousAmount: previousPendingCake.(*big.Int), isCompound: isCompoundCake, gasFee: compoundCakeGasFee, cacheKey: previousPendingCakeCacheKey}
 	} else {
-		balance["cake"] = balanceInfo{amount: pendingCake, previousAmount: nil, isCompound: isCompoundCake, gasFee: gasFee, cacheKey: previousPendingCakeCacheKey}
+		balance["cake"] = balanceInfo{amount: pendingCake, previousAmount: nil, isCompound: isCompoundCake, gasFee: compoundCakeGasFee, cacheKey: previousPendingCakeCacheKey}
 	}
 
 	if previousPendingBeta, foundPreviousPendingBeta := u.cacheService.Get(previousPendingBetaCacheKey); foundPreviousPendingBeta {
