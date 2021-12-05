@@ -58,7 +58,7 @@ func getMasterChefContract(client *ethclient.Client) (*contracts.MasterChef, err
 }
 
 func getSmartChefInitializable(client *ethclient.Client) (*contracts.SmartChefInitializable, error) {
-	contractAddress := common.HexToAddress("0x6f660C58723922c6f866a058199FF4881019B4B5") // Beta token
+	contractAddress := common.HexToAddress("0x6f660C58723922c6f866a058199FF4881019B4B5")
 	contract, err := contracts.NewSmartChefInitializable(contractAddress, client)
 
 	if err != nil {
@@ -100,6 +100,22 @@ func (p *PancakeSwapService) CompoundEarnCake(privateKey string, amount *big.Int
 
 	if err != nil {
 		return nil, fmt.Errorf("enter staking failed, %w", err)
+	}
+
+	return transaction, nil
+}
+
+func (p *PancakeSwapService) HarvestEarnBeta(privateKey string) (*types.Transaction, error) {
+	txOpts, err := utils.GetDefautlTransactionOpts(p.client, privateKey, p.chainId, p.gasLimit, p.gasPriceThreshold)
+
+	if err != nil {
+		return nil, fmt.Errorf("get default trandaction opts failed, %w", err)
+	}
+
+	transaction, err := p.smartChefInitilizable.Deposit(txOpts, big.NewInt(0))
+
+	if err != nil {
+		return nil, fmt.Errorf("HarvestEarnBeta failed, %w", err)
 	}
 
 	return transaction, nil

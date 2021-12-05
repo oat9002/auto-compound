@@ -53,7 +53,7 @@ func execute(conf config.Config) {
 	schedulerService := services.NewSchedulerService(cron.New())
 	lineService := services.NewLineService(&http.Client{}, conf.LineApiKey)
 	cacheService := services.NewCacheService(cache.DefaultExpiration, 10*time.Minute)
-	userService := services.NewUserService(myAddress, conf.UserPrivateKey, lineService, pancakeSwapService, conf.PancakeCompoundThreshold, cacheService, client)
+	userService := services.NewUserService(myAddress, conf.UserPrivateKey, lineService, pancakeSwapService, conf.PancakeCompoundThreshold, cacheService, client, conf.BetaHarvestThreshold)
 
 	if conf.ForceRun {
 		userService.ProcessReward(conf.OnlyCheckReward)

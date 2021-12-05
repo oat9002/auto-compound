@@ -1,13 +1,13 @@
 package services
 
 import (
-	"context"
 	"fmt"
 	"math"
 	"math/big"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/oat9002/auto-compound/utils"
 )
@@ -21,25 +21,27 @@ type UserService struct {
 	lineService              *LineService
 	pancakeSwapService       *PancakeSwapService
 	pancakeCompoundThreshold float64
+	betaHarvestThreshold     float64
 	cacheService             *CacheService
 	client                   *ethclient.Client
 }
 
 type balanceInfo struct {
-	amount         *big.Int
-	previousAmount *big.Int
-	isCompound     bool
-	gasFee         float64
-	cacheKey       string
+	amount              *big.Int
+	previousAmount      *big.Int
+	isCompoundOrHarvest bool
+	gasFee              float64
+	cacheKey            string
 }
 
-func NewUserService(address common.Address, privateKey string, lineService *LineService, pancakeSwapService *PancakeSwapService, pancakeCompoundThreshold float64, cacheService *CacheService, client *ethclient.Client) *UserService {
+func NewUserService(address common.Address, privateKey string, lineService *LineService, pancakeSwapService *PancakeSwapService, pancakeCompoundThreshold float64, cacheService *CacheService, client *ethclient.Client, betaHarvestThreshold float64) *UserService {
 	userService := &UserService{
 		address:                  address,
 		privateKey:               privateKey,
 		lineService:              lineService,
 		pancakeSwapService:       pancakeSwapService,
 		pancakeCompoundThreshold: pancakeCompoundThreshold,
+		betaHarvestThreshold:     betaHarvestThreshold,
 		cacheService:             cacheService,
 		client:                   client,
 	}
@@ -53,7 +55,7 @@ func (u *UserService) GetRewardMessage(balance map[string]balanceInfo) string {
 	for key, value := range balance {
 		amount := utils.FromWei(value.amount)
 
-		if value.isCompound {
+		if value.isCompoundOrHarvest {
 			toReturn += fmt.Sprint(key, ": ", 0, " Compound: ", amount)
 			if value.gasFee != 0 {
 				toReturn += fmt.Sprint(" Gas Fee: ", value.gasFee, " BNB")
@@ -64,7 +66,7 @@ func (u *UserService) GetRewardMessage(balance map[string]balanceInfo) string {
 			toReturn += fmt.Sprint(key, ": ", amount)
 		}
 
-		if value.previousAmount != nil && !value.isCompound && amount > 0 {
+		if value.previousAmount != nil && !value.isCompoundOrHarvest && amount > 0 {
 			previousAmount := utils.FromWei(value.previousAmount)
 			increasePercent := math.Round(((amount-previousAmount)*100/amount)*math.Pow10(2)) / math.Pow10(2)
 
@@ -82,9 +84,35 @@ func (u *UserService) handleError(err error) {
 	u.lineService.Send(err.Error())
 }
 
+func (u *UserService) compoundOrHarvest(pendingToken *big.Int, threshold float64, isOnlyCheckReward bool, execute func() (*types.Transaction, error)) (bool, float64, error) {
+	if utils.FromWei(pendingToken) < threshold && isOnlyCheckReward {
+		return false, 0, nil
+	}
+
+	tx, err := execute()
+
+	if err != nil {
+		return false, 0, err
+	}
+
+	gasFee, err := utils.GetGasFree(u.client, tx)
+
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	return true, gasFee, nil
+}
+
+func (u *UserService) getPreviousToken(cacheKey string) *big.Int {
+	if previousToken, foundPreviousToken := u.cacheService.Get(cacheKey); foundPreviousToken {
+		return previousToken.(*big.Int)
+	}
+
+	return nil
+}
+
 func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
-	isCompoundCake := false
-	gasFee := float64(0)
 	pendingCake, err := u.pancakeSwapService.GetPendingCakeFromSylupPool(u.address)
 
 	if err != nil {
@@ -99,39 +127,38 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 		return
 	}
 
-	if utils.FromWei(pendingCake) >= u.pancakeCompoundThreshold && !isOnlyCheckReward {
-		tx, err := u.pancakeSwapService.CompoundEarnCake(u.privateKey, pendingCake)
+	isCompoundCake, compoundCakeGasFee, err := u.compoundOrHarvest(pendingCake, u.pancakeCompoundThreshold, isOnlyCheckReward, func() (*types.Transaction, error) {
+		return u.pancakeSwapService.CompoundEarnCake(u.privateKey, pendingCake)
+	})
 
-		if err != nil {
-			u.handleError(err)
-			return
-		}
+	if err != nil {
+		u.handleError(err)
+		return
+	}
 
-		receipt, err := u.client.TransactionReceipt(context.Background(), tx.Hash())
+	isHarvestBeta, harvestBetaGasFee, err := u.compoundOrHarvest(pendingBeta, u.betaHarvestThreshold, isOnlyCheckReward, func() (*types.Transaction, error) {
+		return u.pancakeSwapService.HarvestEarnBeta(u.privateKey)
+	})
 
-		if err != nil {
-			u.handleError(err)
-		}
-
-		if receipt != nil {
-			gasFee = math.Round(float64(receipt.GasUsed)*utils.FromWei(tx.GasPrice())*math.Pow10(6)) / math.Pow10(6)
-		}
-
-		isCompoundCake = true
+	if err != nil {
+		u.handleError(err)
+		return
 	}
 
 	balance := make(map[string]balanceInfo)
-
-	if previousPendingCake, foundPreviousPendingCake := u.cacheService.Get(previousPendingCakeCacheKey); foundPreviousPendingCake {
-		balance["cake"] = balanceInfo{amount: pendingCake, previousAmount: previousPendingCake.(*big.Int), isCompound: isCompoundCake, gasFee: gasFee, cacheKey: previousPendingCakeCacheKey}
-	} else {
-		balance["cake"] = balanceInfo{amount: pendingCake, previousAmount: nil, isCompound: isCompoundCake, gasFee: gasFee, cacheKey: previousPendingCakeCacheKey}
+	balance["cake"] = balanceInfo{
+		amount:              pendingCake,
+		previousAmount:      u.getPreviousToken(previousPendingCakeCacheKey),
+		isCompoundOrHarvest: isCompoundCake,
+		gasFee:              compoundCakeGasFee,
+		cacheKey:            previousPendingCakeCacheKey,
 	}
-
-	if previousPendingBeta, foundPreviousPendingBeta := u.cacheService.Get(previousPendingBetaCacheKey); foundPreviousPendingBeta {
-		balance["beta"] = balanceInfo{amount: pendingBeta, previousAmount: previousPendingBeta.(*big.Int), isCompound: false, gasFee: 0, cacheKey: previousPendingBetaCacheKey}
-	} else {
-		balance["beta"] = balanceInfo{amount: pendingBeta, previousAmount: nil, isCompound: false, gasFee: 0, cacheKey: previousPendingBetaCacheKey}
+	balance["beta"] = balanceInfo{
+		amount:              pendingBeta,
+		previousAmount:      u.getPreviousToken(previousPendingBetaCacheKey),
+		isCompoundOrHarvest: isHarvestBeta,
+		gasFee:              harvestBetaGasFee,
+		cacheKey:            previousPendingBetaCacheKey,
 	}
 
 	msg := u.GetRewardMessage(balance)
