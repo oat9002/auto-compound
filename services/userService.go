@@ -85,7 +85,7 @@ func (u *UserService) handleError(err error) {
 }
 
 func (u *UserService) compoundOrHarvest(pendingToken *big.Int, threshold float64, isOnlyCheckReward bool, execute func() (*types.Transaction, error)) (bool, float64, error) {
-	if utils.FromWei(pendingToken) < threshold && isOnlyCheckReward {
+	if utils.FromWei(pendingToken) < threshold || isOnlyCheckReward {
 		return false, 0, nil
 	}
 
