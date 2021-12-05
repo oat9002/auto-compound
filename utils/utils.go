@@ -92,7 +92,7 @@ func GetGasFree(client *ethclient.Client, tx *types.Transaction) (float64, error
 	}()
 
 	go func() {
-		time.Sleep(5 * time.Second)
+		time.Sleep(30 * time.Second)
 		qCh <- struct{}{}
 		gasFeeCh <- 0
 	}()
