@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"math/big"
+	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -67,11 +68,44 @@ func GetDefautlTransactionOpts(client *ethclient.Client, privateKeyStr string, c
 }
 
 func GetGasFree(client *ethclient.Client, tx *types.Transaction) (float64, error) {
-	receipt, err := client.TransactionReceipt(context.Background(), tx.Hash())
+	var err error
+	gasFeeCh := make(chan float64)
+	qCh := make(chan struct{})
 
-	if err != nil {
-		panic("")
+	go func() {
+		for {
+			select {
+			case <-qCh:
+				gasFeeCh <- 0
+				return
+			default:
+				receipt, err := client.TransactionReceipt(context.Background(), tx.Hash())
+
+				if err != nil {
+					time.Sleep(200 * time.Millisecond)
+					continue
+				}
+
+				gasFeeCh <- math.Round(float64(receipt.GasUsed)*FromWei(tx.GasPrice())*math.Pow10(6)) / math.Pow10(6)
+			}
+		}
+	}()
+
+	go func() {
+		time.Sleep(5 * time.Second)
+		qCh <- struct{}{}
+		gasFeeCh <- 0
+	}()
+
+	gasFee := <-gasFeeCh
+
+	if gasFee != 0 {
+		return gasFee, nil
 	}
 
-	return math.Round(float64(receipt.GasUsed)*FromWei(tx.GasPrice())*math.Pow10(6)) / math.Pow10(6), nil
+	if err == nil {
+		err = fmt.Errorf(fmt.Sprintf("Transaction %s is still in pending state", tx.Hash()))
+	}
+
+	return 0, err
 }

@@ -98,7 +98,7 @@ func (u *UserService) compoundOrHarvest(pendingToken *big.Int, threshold float64
 	gasFee, err := utils.GetGasFree(u.client, tx)
 
 	if err != nil {
-		return false, 0, err
+		fmt.Println(err.Error())
 	}
 
 	return true, gasFee, nil
