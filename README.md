@@ -1,7 +1,6 @@
 # auto-compound
 
 - Query and Auto compound following threshold for cake-cake pool
-- Query pending reward for Beta
 
 ## Development in local
 
