@@ -67,7 +67,7 @@ func GetDefautlTransactionOpts(client *ethclient.Client, privateKeyStr string, c
 	return txOpts, nil
 }
 
-func GetGasFree(client *ethclient.Client, tx *types.Transaction) (float64, error) {
+func GetGasFee(client *ethclient.Client, tx *types.Transaction) (float64, error) {
 	var err error
 	gasFeeCh := make(chan float64)
 	qCh := make(chan struct{})

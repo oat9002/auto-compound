@@ -13,7 +13,6 @@ import (
 )
 
 const previousPendingCakeCacheKey = "pendingCakeSylupPool"
-const previousPendingBetaCacheKey = "pendingBetaSylupPool"
 
 type UserService struct {
 	address                  common.Address
@@ -27,11 +26,12 @@ type UserService struct {
 }
 
 type balanceInfo struct {
-	amount              *big.Int
-	previousAmount      *big.Int
-	isCompoundOrHarvest bool
-	gasFee              float64
-	cacheKey            string
+	amount         *big.Int
+	previousAmount *big.Int
+	isCompound     bool
+	isHarvest      bool
+	gasFee         float64
+	cacheKey       string
 }
 
 func NewUserService(address common.Address, privateKey string, lineService *LineService, pancakeSwapService *PancakeSwapService, pancakeCompoundThreshold float64, cacheService *CacheService, client *ethclient.Client, betaHarvestThreshold float64) *UserService {
@@ -55,18 +55,22 @@ func (u *UserService) GetRewardMessage(balance map[string]balanceInfo) string {
 	for key, value := range balance {
 		amount := utils.FromWei(value.amount)
 
-		if value.isCompoundOrHarvest {
-			toReturn += fmt.Sprint(key, ": ", 0, " Compound: ", amount)
+		if value.isCompound || value.isHarvest {
+			compoundOrHarvest := "Compound"
+			if value.isHarvest {
+				compoundOrHarvest = "Harvest"
+			}
+			toReturn += fmt.Sprintf("%s: 0 %s: %.6f ", key, compoundOrHarvest, amount)
 			if value.gasFee != 0 {
-				toReturn += fmt.Sprint(" Gas Fee: ", value.gasFee, " BNB")
+				toReturn += fmt.Sprintf("Gas Fee: %.6f BNB", value.gasFee)
 			}
 
 			u.cacheService.Delete(value.cacheKey)
 		} else {
-			toReturn += fmt.Sprint(key, ": ", amount)
+			toReturn += fmt.Sprintf("%s: %.6f", key, amount)
 		}
 
-		if value.previousAmount != nil && !value.isCompoundOrHarvest && amount > 0 {
+		if value.previousAmount != nil && !value.isCompound && !value.isHarvest && amount > 0 {
 			previousAmount := utils.FromWei(value.previousAmount)
 			increasePercent := math.Round(((amount-previousAmount)*100/amount)*math.Pow10(2)) / math.Pow10(2)
 
@@ -95,7 +99,7 @@ func (u *UserService) compoundOrHarvest(pendingToken *big.Int, threshold float64
 		return false, 0, err
 	}
 
-	gasFee, err := utils.GetGasFree(u.client, tx)
+	gasFee, err := utils.GetGasFee(u.client, tx)
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -120,13 +124,6 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 		return
 	}
 
-	pendingBeta, err := u.pancakeSwapService.GetPendingBetaFromSylupPool(u.address)
-
-	if err != nil {
-		u.handleError(err)
-		return
-	}
-
 	isCompoundCake, compoundCakeGasFee, err := u.compoundOrHarvest(pendingCake, u.pancakeCompoundThreshold, isOnlyCheckReward, func() (*types.Transaction, error) {
 		return u.pancakeSwapService.CompoundEarnCake(u.privateKey, pendingCake)
 	})
@@ -136,33 +133,17 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 		return
 	}
 
-	isHarvestBeta, harvestBetaGasFee, err := u.compoundOrHarvest(pendingBeta, u.betaHarvestThreshold, isOnlyCheckReward, func() (*types.Transaction, error) {
-		return u.pancakeSwapService.HarvestEarnBeta(u.privateKey)
-	})
-
-	if err != nil {
-		u.handleError(err)
-		return
-	}
-
 	balance := make(map[string]balanceInfo)
 	balance["cake"] = balanceInfo{
-		amount:              pendingCake,
-		previousAmount:      u.getPreviousToken(previousPendingCakeCacheKey),
-		isCompoundOrHarvest: isCompoundCake,
-		gasFee:              compoundCakeGasFee,
-		cacheKey:            previousPendingCakeCacheKey,
-	}
-	balance["beta"] = balanceInfo{
-		amount:              pendingBeta,
-		previousAmount:      u.getPreviousToken(previousPendingBetaCacheKey),
-		isCompoundOrHarvest: isHarvestBeta,
-		gasFee:              harvestBetaGasFee,
-		cacheKey:            previousPendingBetaCacheKey,
+		amount:         pendingCake,
+		previousAmount: u.getPreviousToken(previousPendingCakeCacheKey),
+		isCompound:     isCompoundCake,
+		isHarvest:      false,
+		gasFee:         compoundCakeGasFee,
+		cacheKey:       previousPendingCakeCacheKey,
 	}
 
 	msg := u.GetRewardMessage(balance)
 	u.lineService.Send(msg)
 	u.cacheService.SetWithoutExpiry(previousPendingCakeCacheKey, pendingCake)
-	u.cacheService.SetWithoutExpiry(previousPendingBetaCacheKey, pendingBeta)
 }
