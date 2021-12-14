@@ -31,7 +31,6 @@ type balanceInfo struct {
 	isCompound     bool
 	isHarvest      bool
 	gasFee         float64
-	cacheKey       string
 }
 
 func NewUserService(address common.Address, privateKey string, lineService *LineService, pancakeSwapService *PancakeSwapService, pancakeCompoundThreshold float64, cacheService *CacheService, client *ethclient.Client, betaHarvestThreshold float64) *UserService {
@@ -65,7 +64,6 @@ func (u *UserService) GetRewardMessage(balance map[string]balanceInfo) string {
 				toReturn += fmt.Sprintf("Gas Fee: %.6f BNB", value.gasFee)
 			}
 
-			u.cacheService.Delete(value.cacheKey)
 		} else {
 			toReturn += fmt.Sprintf("%s: %.6f", key, amount)
 		}
@@ -88,7 +86,9 @@ func (u *UserService) handleError(err error) {
 	u.lineService.Send(err.Error())
 }
 
-func (u *UserService) compoundOrHarvest(pendingToken *big.Int, threshold float64, isOnlyCheckReward bool, execute func() (*types.Transaction, error)) (bool, float64, error) {
+func (u *UserService) compoundOrHarvest(pendingToken *big.Int, threshold float64, isOnlyCheckReward bool, prevCacheKey string, execute func() (*types.Transaction, error)) (bool, float64, error) {
+	defer u.cacheService.Delete(prevCacheKey)
+
 	if utils.FromWei(pendingToken) < threshold || isOnlyCheckReward {
 		return false, 0, nil
 	}
@@ -118,13 +118,14 @@ func (u *UserService) getPreviousToken(cacheKey string) *big.Int {
 
 func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 	pendingCake, err := u.pancakeSwapService.GetPendingCakeFromSylupPool(u.address)
+	defer u.cacheService.SetWithoutExpiry(previousPendingCakeCacheKey, pendingCake)
 
 	if err != nil {
 		u.handleError(err)
 		return
 	}
 
-	isCompoundCake, compoundCakeGasFee, err := u.compoundOrHarvest(pendingCake, u.pancakeCompoundThreshold, isOnlyCheckReward, func() (*types.Transaction, error) {
+	isCompoundCake, compoundCakeGasFee, err := u.compoundOrHarvest(pendingCake, u.pancakeCompoundThreshold, isOnlyCheckReward, previousPendingCakeCacheKey, func() (*types.Transaction, error) {
 		return u.pancakeSwapService.CompoundEarnCake(u.privateKey, pendingCake)
 	})
 
@@ -140,10 +141,8 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 		isCompound:     isCompoundCake,
 		isHarvest:      false,
 		gasFee:         compoundCakeGasFee,
-		cacheKey:       previousPendingCakeCacheKey,
 	}
 
 	msg := u.GetRewardMessage(balance)
 	u.lineService.Send(msg)
-	u.cacheService.SetWithoutExpiry(previousPendingCakeCacheKey, pendingCake)
 }
