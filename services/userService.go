@@ -87,8 +87,6 @@ func (u *UserService) handleError(err error) {
 }
 
 func (u *UserService) compoundOrHarvest(pendingToken *big.Int, threshold float64, isOnlyCheckReward bool, prevCacheKey string, execute func() (*types.Transaction, error)) (bool, float64, error) {
-	defer u.cacheService.Delete(prevCacheKey)
-
 	if utils.FromWei(pendingToken) < threshold || isOnlyCheckReward {
 		return false, 0, nil
 	}
@@ -104,6 +102,8 @@ func (u *UserService) compoundOrHarvest(pendingToken *big.Int, threshold float64
 	if err != nil {
 		fmt.Println(err.Error())
 	}
+
+	u.cacheService.Delete(prevCacheKey)
 
 	return true, gasFee, nil
 }
