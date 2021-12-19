@@ -26,7 +26,7 @@ type Config struct {
 	GasLimit                 uint64
 	PancakeCompoundThreshold float64
 	GasPriceThreshold        uint64
-	Cron                     string
+	QueryCron                string
 	BetaHarvestThreshold     float64
 }
 
@@ -38,7 +38,7 @@ const defaultGasPriceThreshold = 10000000000
 const defaultPancakeCoumpoundThreshold = 0.5
 const defaultBetaHarvestThreshold = 5
 const defaultGasLimit = 3000000
-const defaultCron = "0 */6 * * *"
+const defaultQueryCron = "0 */6 * * *"
 
 func loadConfig() (*Config, error) {
 	isDevelopmentFlag := flag.Bool("dev", false, "Run as development mode.")
@@ -51,7 +51,7 @@ func loadConfig() (*Config, error) {
 	gasLimitFlag := flag.Uint64("gaslimit", defaultGasLimit, "Gas limit.")
 	pancakeCompoundThresholdFlag := flag.Float64("pancakethreshold", defaultPancakeCoumpoundThreshold, "Threshold for amount of pancake to trigger compound.")
 	gasPriceThresholdFlag := flag.Uint64("gaspricethreshold", defaultGasPriceThreshold, "Threshld for gas price in Wei.")
-	cronFlag := flag.String("cron", defaultCron, "Schedule for running app e.g. 0 */6 * * *")
+	queryCronFlag := flag.String("querycron", defaultQueryCron, "Schedule for running app e.g. 0 */6 * * *")
 	betaHarvestThresholdFlag := flag.Float64("betathreshold", defaultBetaHarvestThreshold, "Threshold for amount of beta to trigger harvest")
 
 	flag.Parse()
@@ -91,7 +91,7 @@ func loadConfig() (*Config, error) {
 
 		return threshold
 	}).(uint64)
-	cron := get("CRON", *cronFlag, func(s string) interface{} { return s }).(string)
+	queryCron := get("QUERY_CRON", *queryCronFlag, func(s string) interface{} { return s }).(string)
 	betaHarvestThreshold := get("BETA_HARVEST_THRESHOLD", *betaHarvestThresholdFlag, func(s string) interface{} {
 		threshold, err := strconv.ParseFloat(s, 64)
 
@@ -113,7 +113,7 @@ func loadConfig() (*Config, error) {
 		GasLimit:                 gasLimit,
 		PancakeCompoundThreshold: pancakeCompoundThreshold,
 		GasPriceThreshold:        gasPriceThreashold,
-		Cron:                     cron,
+		QueryCron:                queryCron,
 		BetaHarvestThreshold:     betaHarvestThreshold,
 	}
 

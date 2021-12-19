@@ -58,7 +58,7 @@ func execute(conf config.Config) {
 	if conf.ForceRun {
 		userService.ProcessReward(conf.OnlyCheckReward)
 	} else {
-		_, err := schedulerService.AddFunc(conf.Cron, func() {
+		_, err := schedulerService.AddFunc(conf.QueryCron, func() {
 			userService.ProcessReward(conf.OnlyCheckReward)
 		})
 
