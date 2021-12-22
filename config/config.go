@@ -28,6 +28,7 @@ type Config struct {
 	GasPriceThreshold        uint64
 	QueryCron                string
 	BetaHarvestThreshold     float64
+	MutateCron               string
 }
 
 var once sync.Once
