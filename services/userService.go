@@ -72,7 +72,9 @@ func (u *UserService) GetRewardMessage(balance map[string]balanceInfo) string {
 			previousAmount := utils.FromWei(value.previousAmount)
 			increasePercent := math.Round(((amount-previousAmount)*100/amount)*math.Pow10(2)) / math.Pow10(2)
 
-			toReturn += fmt.Sprintln(" ↑ ", increasePercent, "%")
+			if increasePercent > 0 {
+				toReturn += fmt.Sprintln(" ↑ ", increasePercent, "%")
+			}
 		} else {
 			toReturn += fmt.Sprintln()
 		}
