@@ -16,19 +16,17 @@ const bscTestNetwork string = "https://data-seed-prebsc-1-s1.binance.org:8545/"
 const bscTestChainId int = 97
 
 type Config struct {
-	IsDevelopment            bool
-	UseTestNetwork           bool
-	OnlyCheckReward          bool
-	ForceRun                 bool
-	UserAddress              string
-	UserPrivateKey           string
-	LineApiKey               string
-	GasLimit                 uint64
-	PancakeCompoundThreshold float64
-	GasPriceThreshold        uint64
-	QueryCron                string
-	BetaHarvestThreshold     float64
-	MutationCron             string
+	IsDevelopment     bool
+	UseTestNetwork    bool
+	OnlyCheckReward   bool
+	ForceRun          bool
+	UserAddress       string
+	UserPrivateKey    string
+	LineApiKey        string
+	GasLimit          uint64
+	GasPriceThreshold uint64
+	QueryCron         string
+	MutationCron      string
 }
 
 var once sync.Once
@@ -38,7 +36,7 @@ const prefixEnv = "AUTO_COMPOUND_"
 const defaultGasPriceThreshold = 10000000000
 const defaultGasLimit = 3000000
 const defaultQueryCron = "0 */6 * * *"
-const defaultMutationCron = "0 0 */7 * *"
+const defaultMutationCron = "0 9 */7 * *"
 
 func loadConfig() (*Config, error) {
 	isDevelopmentFlag := flag.Bool("dev", false, "Run as development mode.")
@@ -51,7 +49,7 @@ func loadConfig() (*Config, error) {
 	gasLimitFlag := flag.Uint64("gaslimit", defaultGasLimit, "Gas limit.")
 	gasPriceThresholdFlag := flag.Uint64("gaspricethreshold", defaultGasPriceThreshold, "Threshld for gas price in Wei.")
 	queryCronFlag := flag.String("querycron", defaultQueryCron, "Schedule for query reward e.g. 0 */6 * * *")
-	mutationCronFlag := flag.String("mutatationcron", defaultMutationCron, "Schedule for compound or harvest e.g. 0 0 */7 * * ")
+	mutationCronFlag := flag.String("mutatationcron", defaultMutationCron, "Schedule for compound or harvest e.g. 0 9 */7 * *")
 
 	flag.Parse()
 	godotenv.Load()
