@@ -82,7 +82,7 @@ func GetGasFee(client *ethclient.Client, tx *types.Transaction) (float64, error)
 				receipt, err := client.TransactionReceipt(context.Background(), tx.Hash())
 
 				if err != nil {
-					time.Sleep(1 * time.Second)
+					time.Sleep(10 * time.Second)
 					continue
 				}
 
@@ -92,7 +92,7 @@ func GetGasFee(client *ethclient.Client, tx *types.Transaction) (float64, error)
 	}()
 
 	go func() {
-		time.Sleep(10 * time.Minute)
+		time.Sleep(30 * time.Minute)
 		qCh <- struct{}{}
 		gasFeeCh <- 0
 	}()

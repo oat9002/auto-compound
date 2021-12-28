@@ -15,14 +15,12 @@ import (
 const previousPendingCakeCacheKey = "pendingCakeSylupPool"
 
 type UserService struct {
-	address                  common.Address
-	privateKey               string
-	lineService              *LineService
-	pancakeSwapService       *PancakeSwapService
-	pancakeCompoundThreshold float64
-	betaHarvestThreshold     float64
-	cacheService             *CacheService
-	client                   *ethclient.Client
+	address            common.Address
+	privateKey         string
+	lineService        *LineService
+	pancakeSwapService *PancakeSwapService
+	cacheService       *CacheService
+	client             *ethclient.Client
 }
 
 type balanceInfo struct {
@@ -33,16 +31,14 @@ type balanceInfo struct {
 	gasFee         float64
 }
 
-func NewUserService(address common.Address, privateKey string, lineService *LineService, pancakeSwapService *PancakeSwapService, pancakeCompoundThreshold float64, cacheService *CacheService, client *ethclient.Client, betaHarvestThreshold float64) *UserService {
+func NewUserService(address common.Address, privateKey string, lineService *LineService, pancakeSwapService *PancakeSwapService, cacheService *CacheService, client *ethclient.Client) *UserService {
 	userService := &UserService{
-		address:                  address,
-		privateKey:               privateKey,
-		lineService:              lineService,
-		pancakeSwapService:       pancakeSwapService,
-		pancakeCompoundThreshold: pancakeCompoundThreshold,
-		betaHarvestThreshold:     betaHarvestThreshold,
-		cacheService:             cacheService,
-		client:                   client,
+		address:            address,
+		privateKey:         privateKey,
+		lineService:        lineService,
+		pancakeSwapService: pancakeSwapService,
+		cacheService:       cacheService,
+		client:             client,
 	}
 
 	return userService
@@ -72,7 +68,9 @@ func (u *UserService) GetRewardMessage(balance map[string]balanceInfo) string {
 			previousAmount := utils.FromWei(value.previousAmount)
 			increasePercent := math.Round(((amount-previousAmount)*100/amount)*math.Pow10(2)) / math.Pow10(2)
 
-			toReturn += fmt.Sprintln(" ↑ ", increasePercent, "%")
+			if increasePercent > 0 {
+				toReturn += fmt.Sprintln(" ↑ ", increasePercent, "%")
+			}
 		} else {
 			toReturn += fmt.Sprintln()
 		}
@@ -86,10 +84,8 @@ func (u *UserService) handleError(err error) {
 	u.lineService.Send(err.Error())
 }
 
-func (u *UserService) compoundOrHarvest(pendingToken *big.Int, threshold float64, isOnlyCheckReward bool, prevCacheKey string, execute func() (*types.Transaction, error)) (bool, float64, error) {
-	defer u.cacheService.Delete(prevCacheKey)
-
-	if utils.FromWei(pendingToken) < threshold || isOnlyCheckReward {
+func (u *UserService) compoundOrHarvest(isOnlyCheckReward bool, prevCacheKey string, execute func() (*types.Transaction, error)) (bool, float64, error) {
+	if isOnlyCheckReward {
 		return false, 0, nil
 	}
 
@@ -104,6 +100,8 @@ func (u *UserService) compoundOrHarvest(pendingToken *big.Int, threshold float64
 	if err != nil {
 		fmt.Println(err.Error())
 	}
+
+	u.cacheService.Delete(prevCacheKey)
 
 	return true, gasFee, nil
 }
@@ -125,7 +123,7 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 		return
 	}
 
-	isCompoundCake, compoundCakeGasFee, err := u.compoundOrHarvest(pendingCake, u.pancakeCompoundThreshold, isOnlyCheckReward, previousPendingCakeCacheKey, func() (*types.Transaction, error) {
+	isCompoundCake, compoundCakeGasFee, err := u.compoundOrHarvest(isOnlyCheckReward, previousPendingCakeCacheKey, func() (*types.Transaction, error) {
 		return u.pancakeSwapService.CompoundEarnCake(u.privateKey, pendingCake)
 	})
 

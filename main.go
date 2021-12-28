@@ -53,17 +53,27 @@ func execute(conf config.Config) {
 	schedulerService := services.NewSchedulerService(cron.New())
 	lineService := services.NewLineService(&http.Client{}, conf.LineApiKey)
 	cacheService := services.NewCacheService(cache.DefaultExpiration, 10*time.Minute)
-	userService := services.NewUserService(myAddress, conf.UserPrivateKey, lineService, pancakeSwapService, conf.PancakeCompoundThreshold, cacheService, client, conf.BetaHarvestThreshold)
+	userService := services.NewUserService(myAddress, conf.UserPrivateKey, lineService, pancakeSwapService, cacheService, client)
 
 	if conf.ForceRun {
 		userService.ProcessReward(conf.OnlyCheckReward)
 	} else {
-		_, err := schedulerService.AddFunc(conf.Cron, func() {
-			userService.ProcessReward(conf.OnlyCheckReward)
+		_, err := schedulerService.AddFunc(conf.QueryCron, func() {
+			userService.ProcessReward(true)
 		})
 
 		if err != nil {
 			log.Fatal(err)
+		}
+
+		if !conf.OnlyCheckReward {
+			_, err = schedulerService.AddFunc(conf.MutationCron, func() {
+				userService.ProcessReward(false)
+			})
+
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 
 		schedulerService.RunAsync()

@@ -16,18 +16,17 @@ const bscTestNetwork string = "https://data-seed-prebsc-1-s1.binance.org:8545/"
 const bscTestChainId int = 97
 
 type Config struct {
-	IsDevelopment            bool
-	UseTestNetwork           bool
-	OnlyCheckReward          bool
-	ForceRun                 bool
-	UserAddress              string
-	UserPrivateKey           string
-	LineApiKey               string
-	GasLimit                 uint64
-	PancakeCompoundThreshold float64
-	GasPriceThreshold        uint64
-	Cron                     string
-	BetaHarvestThreshold     float64
+	IsDevelopment     bool
+	UseTestNetwork    bool
+	OnlyCheckReward   bool
+	ForceRun          bool
+	UserAddress       string
+	UserPrivateKey    string
+	LineApiKey        string
+	GasLimit          uint64
+	GasPriceThreshold uint64
+	QueryCron         string
+	MutationCron      string
 }
 
 var once sync.Once
@@ -35,10 +34,9 @@ var config *Config
 
 const prefixEnv = "AUTO_COMPOUND_"
 const defaultGasPriceThreshold = 10000000000
-const defaultPancakeCoumpoundThreshold = 0.5
-const defaultBetaHarvestThreshold = 5
 const defaultGasLimit = 3000000
-const defaultCron = "0 */6 * * *"
+const defaultQueryCron = "0 9,21 * * *"
+const defaultMutationCron = "0 9 */7 * *"
 
 func loadConfig() (*Config, error) {
 	isDevelopmentFlag := flag.Bool("dev", false, "Run as development mode.")
@@ -49,10 +47,9 @@ func loadConfig() (*Config, error) {
 	userPrivateKeyFlag := flag.String("privatekey", "", "User private key. (Required if onlycheck is false)")
 	lineApiKeyFlag := flag.String("lineapikey", "", "Send notification by line notify.")
 	gasLimitFlag := flag.Uint64("gaslimit", defaultGasLimit, "Gas limit.")
-	pancakeCompoundThresholdFlag := flag.Float64("pancakethreshold", defaultPancakeCoumpoundThreshold, "Threshold for amount of pancake to trigger compound.")
 	gasPriceThresholdFlag := flag.Uint64("gaspricethreshold", defaultGasPriceThreshold, "Threshld for gas price in Wei.")
-	cronFlag := flag.String("cron", defaultCron, "Schedule for running app e.g. 0 */6 * * *")
-	betaHarvestThresholdFlag := flag.Float64("betathreshold", defaultBetaHarvestThreshold, "Threshold for amount of beta to trigger harvest")
+	queryCronFlag := flag.String("querycron", defaultQueryCron, "Schedule for query reward e.g. 0 9,21 * * *")
+	mutationCronFlag := flag.String("mutatationcron", defaultMutationCron, "Schedule for compound or harvest e.g. 0 9 */7 * *")
 
 	flag.Parse()
 	godotenv.Load()
@@ -73,15 +70,6 @@ func loadConfig() (*Config, error) {
 
 		return limit
 	}).(uint64)
-	pancakeCompoundThreshold := get("PANCAKE_COMPOUND_THRESHOLD", *pancakeCompoundThresholdFlag, func(s string) interface{} {
-		threshold, err := strconv.ParseFloat(s, 64)
-
-		if err != nil {
-			panic(fmt.Sprintf("Parse pancakeCompoundThreshold config failed, %w", err))
-		}
-
-		return threshold
-	}).(float64)
 	gasPriceThreashold := get("GAS_PRICE_THRESHOLD", *gasPriceThresholdFlag, func(s string) interface{} {
 		threshold, err := strconv.ParseUint(s, 10, 64)
 
@@ -91,30 +79,21 @@ func loadConfig() (*Config, error) {
 
 		return threshold
 	}).(uint64)
-	cron := get("CRON", *cronFlag, func(s string) interface{} { return s }).(string)
-	betaHarvestThreshold := get("BETA_HARVEST_THRESHOLD", *betaHarvestThresholdFlag, func(s string) interface{} {
-		threshold, err := strconv.ParseFloat(s, 64)
-
-		if err != nil {
-			panic(fmt.Sprintf("Parse betaHarvestThreshold config failed, %w", err))
-		}
-
-		return threshold
-	}).(float64)
+	queryCron := get("QUERY_CRON", *queryCronFlag, func(s string) interface{} { return s }).(string)
+	mutationCron := get("MUTATION_CRON", *mutationCronFlag, func(s string) interface{} { return s }).(string)
 
 	config = &Config{
-		IsDevelopment:            isDevelopment,
-		UseTestNetwork:           useTestNetWork,
-		OnlyCheckReward:          onlyCheckReward,
-		ForceRun:                 forceRun,
-		UserAddress:              userAddress,
-		UserPrivateKey:           userPrivateKey,
-		LineApiKey:               lineApiKey,
-		GasLimit:                 gasLimit,
-		PancakeCompoundThreshold: pancakeCompoundThreshold,
-		GasPriceThreshold:        gasPriceThreashold,
-		Cron:                     cron,
-		BetaHarvestThreshold:     betaHarvestThreshold,
+		IsDevelopment:     isDevelopment,
+		UseTestNetwork:    useTestNetWork,
+		OnlyCheckReward:   onlyCheckReward,
+		ForceRun:          forceRun,
+		UserAddress:       userAddress,
+		UserPrivateKey:    userPrivateKey,
+		LineApiKey:        lineApiKey,
+		GasLimit:          gasLimit,
+		GasPriceThreshold: gasPriceThreashold,
+		QueryCron:         queryCron,
+		MutationCron:      mutationCron,
 	}
 
 	return config, nil
