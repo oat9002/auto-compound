@@ -35,7 +35,7 @@ var config *Config
 const prefixEnv = "AUTO_COMPOUND_"
 const defaultGasPriceThreshold = 10000000000
 const defaultGasLimit = 3000000
-const defaultQueryCron = "0 */6 * * *"
+const defaultQueryCron = "0 9,21 * * *"
 const defaultMutationCron = "0 9 */7 * *"
 
 func loadConfig() (*Config, error) {
@@ -48,7 +48,7 @@ func loadConfig() (*Config, error) {
 	lineApiKeyFlag := flag.String("lineapikey", "", "Send notification by line notify.")
 	gasLimitFlag := flag.Uint64("gaslimit", defaultGasLimit, "Gas limit.")
 	gasPriceThresholdFlag := flag.Uint64("gaspricethreshold", defaultGasPriceThreshold, "Threshld for gas price in Wei.")
-	queryCronFlag := flag.String("querycron", defaultQueryCron, "Schedule for query reward e.g. 0 */6 * * *")
+	queryCronFlag := flag.String("querycron", defaultQueryCron, "Schedule for query reward e.g. 0 9,21 * * *")
 	mutationCronFlag := flag.String("mutatationcron", defaultMutationCron, "Schedule for compound or harvest e.g. 0 9 */7 * *")
 
 	flag.Parse()
