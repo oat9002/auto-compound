@@ -10,7 +10,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
@@ -67,8 +66,9 @@ func GetDefautlTransactionOpts(client *ethclient.Client, privateKeyStr string, c
 	return txOpts, nil
 }
 
-func GetGasFee(client *ethclient.Client, tx *types.Transaction) (float64, error) {
-	var err error
+//Get gas fee
+func GetGasFee(client *ethclient.Client, txHash common.Hash) (float64, error) {
+	errCh := make(chan error)
 	gasFeeCh := make(chan float64)
 	qCh := make(chan struct{})
 
@@ -77,35 +77,44 @@ func GetGasFee(client *ethclient.Client, tx *types.Transaction) (float64, error)
 			select {
 			case <-qCh:
 				gasFeeCh <- 0
+				errCh <- fmt.Errorf(fmt.Sprintf("Transaction %s is still in pending state", txHash))
 				return
 			default:
-				receipt, err := client.TransactionReceipt(context.Background(), tx.Hash())
+				tx, isPending, err := client.TransactionByHash(context.Background(), txHash)
 
 				if err != nil {
-					time.Sleep(10 * time.Second)
+					gasFeeCh <- 0
+					errCh <- err
+					return
+				}
+
+				if isPending {
+					time.Sleep(5 * time.Second)
 					continue
 				}
 
+				receipt, err := client.TransactionReceipt(context.Background(), txHash)
+
+				if err != nil {
+					gasFeeCh <- 0
+					errCh <- err
+					return
+				}
+
 				gasFeeCh <- math.Round(float64(receipt.GasUsed)*FromWei(tx.GasPrice())*math.Pow10(6)) / math.Pow10(6)
+				errCh <- nil
+				return
 			}
 		}
 	}()
 
 	go func() {
-		time.Sleep(30 * time.Minute)
+		time.Sleep(10 * time.Minute)
 		qCh <- struct{}{}
-		gasFeeCh <- 0
 	}()
 
 	gasFee := <-gasFeeCh
+	err := <-errCh
 
-	if gasFee != 0 {
-		return gasFee, nil
-	}
-
-	if err == nil {
-		err = fmt.Errorf(fmt.Sprintf("Transaction %s is still in pending state", tx.Hash()))
-	}
-
-	return 0, err
+	return gasFee, err
 }

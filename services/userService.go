@@ -95,7 +95,7 @@ func (u *UserService) compoundOrHarvest(isOnlyCheckReward bool, prevCacheKey str
 		return false, 0, err
 	}
 
-	gasFee, err := utils.GetGasFee(u.client, tx)
+	gasFee, err := utils.GetGasFee(u.client, tx.Hash())
 
 	if err != nil {
 		fmt.Println(err.Error())
