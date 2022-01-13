@@ -57,7 +57,7 @@ func (u *UserService) GetRewardMessage(balance map[string]balanceInfo) string {
 			}
 			toReturn += fmt.Sprintf("%s: 0 %s: %.6f ", key, compoundOrHarvest, amount)
 			if value.gasFee != 0 {
-				toReturn += fmt.Sprintf("Gas Fee: %.6f BNB", value.gasFee)
+				toReturn += fmt.Sprintf("Gas Fee: %.6f bnb", value.gasFee)
 			}
 
 		} else {
