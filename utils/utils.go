@@ -15,10 +15,23 @@ import (
 )
 
 // convert wei
-func FromWei(data *big.Int) float64 {
-	toReturn := float64(data.Int64()) / math.Pow10(18)
+func FromWei(data interface{}) float64 {
+	exec := func(a uint64) float64 {
+		toReturn := float64(a) / math.Pow10(18)
+		return math.Round(toReturn*math.Pow10(6)) / math.Pow10(6)
+	}
 
-	return math.Round(toReturn*math.Pow10(6)) / math.Pow10(6)
+	bi, ok := data.(*big.Int)
+	if ok {
+		return exec(bi.Uint64())
+	}
+
+	ui, ok := data.(uint64)
+	if ok {
+		return exec(ui)
+	}
+
+	return 0
 }
 
 // Get default CallOpts
@@ -101,7 +114,7 @@ func GetGasFee(client *ethclient.Client, txHash common.Hash) (float64, error) {
 					return
 				}
 
-				gasFeeCh <- math.Round(float64(receipt.GasUsed)*FromWei(tx.GasPrice())*math.Pow10(6)) / math.Pow10(6)
+				gasFeeCh <- FromWei(receipt.GasUsed * tx.GasPrice().Uint64())
 				errCh <- nil
 				return
 			}
