@@ -1,6 +1,6 @@
 # auto-compound
 
-- Query and Auto compound following threshold for cake-cake pool
+- Query and Auto compound following cron for cake-cake pool
 
 ## Development in local
 
