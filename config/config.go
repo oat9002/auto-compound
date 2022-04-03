@@ -65,7 +65,7 @@ func loadConfig() (*Config, error) {
 		limit, err := strconv.ParseUint(s, 10, 64)
 
 		if err != nil {
-			panic(fmt.Sprintf("Parse gasLimit config failed, %w", err))
+			panic(fmt.Sprintf("Parse gasLimit config failed, %s", err.Error()))
 		}
 
 		return limit
@@ -74,7 +74,7 @@ func loadConfig() (*Config, error) {
 		threshold, err := strconv.ParseUint(s, 10, 64)
 
 		if err != nil {
-			panic(fmt.Sprintf("Parse gasPriceThreashold config failed, %w", err))
+			panic(fmt.Sprintf("Parse gasPriceThreashold config failed, %s", err.Error()))
 		}
 
 		return threshold

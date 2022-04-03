@@ -79,11 +79,6 @@ func (u *UserService) GetRewardMessage(balance map[string]balanceInfo) string {
 	return strings.TrimSuffix(toReturn, "\n")
 }
 
-func (u *UserService) handleError(err error) {
-	fmt.Println(err.Error())
-	u.lineService.Send(err.Error())
-}
-
 func (u *UserService) compoundOrHarvest(isOnlyCheckReward bool, prevCacheKey string, execute func() (*types.Transaction, error)) (bool, float64, error) {
 	if isOnlyCheckReward {
 		return false, 0, nil
@@ -98,7 +93,7 @@ func (u *UserService) compoundOrHarvest(isOnlyCheckReward bool, prevCacheKey str
 	gasFee, err := utils.GetGasFee(u.client, tx.Hash())
 
 	if err != nil {
-		fmt.Println(err.Error())
+		return true, 0, err
 	}
 
 	u.cacheService.Delete(prevCacheKey)
@@ -119,7 +114,7 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 	defer u.cacheService.SetWithoutExpiry(previousPendingCakeCacheKey, pendingCake)
 
 	if err != nil {
-		u.handleError(err)
+		fmt.Printf("GetPendingCakeFromSylupPool failed, %s\n", err.Error())
 		return
 	}
 
@@ -127,8 +122,8 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 		return u.pancakeSwapService.CompoundEarnCake(u.privateKey, pendingCake)
 	})
 
-	if err != nil {
-		u.handleError(err)
+	if err != nil && !isCompoundCake {
+		fmt.Printf("compoundOrHarvest failed, %s\n", err.Error())
 		return
 	}
 
