@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -30,21 +31,21 @@ func (t *TelegramService) SendMessage(message string) error {
 	}
 
 	baseUrl := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", t.botToken)
-	req, err := http.NewRequest("GET", baseUrl, strings.NewReader(url.Values{"message": {message}, "chatId": {t.chatId}}.Encode()))
+	req, err := http.NewRequest("GET", baseUrl, strings.NewReader(url.Values{"text": {message}, "chat_id": {t.chatId}, "parse_mode": {"HTML"}}.Encode()))
 	if err != nil {
-		return fmt.Errorf("cannot create send telegram message, %s", err)
+		return fmt.Errorf("create telegram request failed, %s", err)
 	}
 
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := t.httpClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("cannot create send telegram message, %s", err)
+		return fmt.Errorf("cannot send telegram message, %s", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("cannot create send telegram message, %s", resp.Status)
-
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("cannot send telegram message, %s", string(bodyBytes))
 	}
 
 	return nil

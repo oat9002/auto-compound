@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -43,7 +44,8 @@ func (l *LineService) SendMessage(message string) error {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("cannot send line message, %s", resp.Status)
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("cannot send line message, %s", string(bodyBytes))
 	}
 
 	return nil

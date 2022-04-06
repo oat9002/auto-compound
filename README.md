@@ -1,6 +1,7 @@
 # auto-compound
 
-- Query and Auto compound following cron for cake-cake pool
+-   Query and Auto compound following cron for cake-cake pool
+-   Notify with Line Notify or Telegram
 
 ## Development in local
 

@@ -82,7 +82,7 @@ func loadConfig() (*Config, error) {
 		limit, err := strconv.ParseUint(s, 10, 64)
 
 		if err != nil {
-			panic(fmt.Sprintf("Parse gasLimit config failed, %s", err.Error()))
+			panic(fmt.Sprintf("Parse gasLimit config failed, %s", err))
 		}
 
 		return limit
@@ -91,7 +91,7 @@ func loadConfig() (*Config, error) {
 		threshold, err := strconv.ParseUint(s, 10, 64)
 
 		if err != nil {
-			panic(fmt.Sprintf("Parse gasPriceThreashold config failed, %s", err.Error()))
+			panic(fmt.Sprintf("Parse gasPriceThreashold config failed, %s", err))
 		}
 
 		return threshold
@@ -104,7 +104,7 @@ func loadConfig() (*Config, error) {
 			return nil
 		}
 
-		return TelegramConfig{
+		return &TelegramConfig{
 			BotToken: ss[0],
 			ChatId:   ss[1],
 		}

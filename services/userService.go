@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"math/big"
 	"strings"
@@ -114,7 +115,7 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 	defer u.cacheService.SetWithoutExpiry(previousPendingCakeCacheKey, pendingCake)
 
 	if err != nil {
-		fmt.Printf("GetPendingCakeFromSylupPool failed, %s\n", err.Error())
+		fmt.Printf("GetPendingCakeFromSylupPool failed, %s\n", err)
 		return
 	}
 
@@ -123,7 +124,7 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 	})
 
 	if err != nil && !isCompoundCake {
-		fmt.Printf("compoundOrHarvest failed, %s\n", err.Error())
+		fmt.Printf("compoundOrHarvest failed, %s\n", err)
 		return
 	}
 
@@ -137,5 +138,8 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 	}
 
 	msg := u.GetRewardMessage(balance)
-	u.messagingService.SendMessage(msg)
+	err = u.messagingService.SendMessage(msg)
+	if err != nil {
+		log.Printf("send message failed, %s", err)
+	}
 }
