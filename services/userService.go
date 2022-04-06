@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"math/big"
 	"strings"
@@ -17,7 +18,7 @@ const previousPendingCakeCacheKey = "pendingCakeSylupPool"
 type UserService struct {
 	address            common.Address
 	privateKey         string
-	lineService        *LineService
+	messagingService   MessagingService
 	pancakeSwapService *PancakeSwapService
 	cacheService       *CacheService
 	client             *ethclient.Client
@@ -31,11 +32,11 @@ type balanceInfo struct {
 	gasFee         float64
 }
 
-func NewUserService(address common.Address, privateKey string, lineService *LineService, pancakeSwapService *PancakeSwapService, cacheService *CacheService, client *ethclient.Client) *UserService {
+func NewUserService(address common.Address, privateKey string, messagingService MessagingService, pancakeSwapService *PancakeSwapService, cacheService *CacheService, client *ethclient.Client) *UserService {
 	userService := &UserService{
 		address:            address,
 		privateKey:         privateKey,
-		lineService:        lineService,
+		messagingService:   messagingService,
 		pancakeSwapService: pancakeSwapService,
 		cacheService:       cacheService,
 		client:             client,
@@ -114,7 +115,7 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 	defer u.cacheService.SetWithoutExpiry(previousPendingCakeCacheKey, pendingCake)
 
 	if err != nil {
-		fmt.Printf("GetPendingCakeFromSylupPool failed, %s\n", err.Error())
+		fmt.Printf("GetPendingCakeFromSylupPool failed, %s\n", err)
 		return
 	}
 
@@ -123,7 +124,7 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 	})
 
 	if err != nil && !isCompoundCake {
-		fmt.Printf("compoundOrHarvest failed, %s\n", err.Error())
+		fmt.Printf("compoundOrHarvest failed, %s\n", err)
 		return
 	}
 
@@ -137,5 +138,8 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 	}
 
 	msg := u.GetRewardMessage(balance)
-	u.lineService.Send(msg)
+	err = u.messagingService.SendMessage(msg)
+	if err != nil {
+		log.Printf("send message failed, %s", err)
+	}
 }

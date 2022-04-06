@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/joho/godotenv"
@@ -14,6 +15,19 @@ const bscNetwork string = "https://bsc-dataseed.binance.org/"
 const bscChainId int = 56
 const bscTestNetwork string = "https://data-seed-prebsc-1-s1.binance.org:8545/"
 const bscTestChainId int = 97
+
+type MessagingProvider int
+
+const (
+	None MessagingProvider = iota
+	Line
+	Telegram
+)
+
+type TelegramConfig struct {
+	BotToken string
+	ChatId   string
+}
 
 type Config struct {
 	IsDevelopment     bool
@@ -27,6 +41,8 @@ type Config struct {
 	GasPriceThreshold uint64
 	QueryCron         string
 	MutationCron      string
+	Telegram          *TelegramConfig
+	MessagingProvider MessagingProvider
 }
 
 var once sync.Once
@@ -50,6 +66,7 @@ func loadConfig() (*Config, error) {
 	gasPriceThresholdFlag := flag.Uint64("gaspricethreshold", defaultGasPriceThreshold, "Threshld for gas price in Wei.")
 	queryCronFlag := flag.String("querycron", defaultQueryCron, "Schedule for query reward e.g. 0 9,21 * * *")
 	mutationCronFlag := flag.String("mutatationcron", defaultMutationCron, "Schedule for compound or harvest e.g. 0 9 */7 * *")
+	telegramFlag := flag.String("telegram", "", "Telegram bot token and chat id, e.g. <bot_token>,<chat_id>")
 
 	flag.Parse()
 	godotenv.Load()
@@ -65,7 +82,7 @@ func loadConfig() (*Config, error) {
 		limit, err := strconv.ParseUint(s, 10, 64)
 
 		if err != nil {
-			panic(fmt.Sprintf("Parse gasLimit config failed, %s", err.Error()))
+			panic(fmt.Sprintf("Parse gasLimit config failed, %s", err))
 		}
 
 		return limit
@@ -74,13 +91,32 @@ func loadConfig() (*Config, error) {
 		threshold, err := strconv.ParseUint(s, 10, 64)
 
 		if err != nil {
-			panic(fmt.Sprintf("Parse gasPriceThreashold config failed, %s", err.Error()))
+			panic(fmt.Sprintf("Parse gasPriceThreashold config failed, %s", err))
 		}
 
 		return threshold
 	}).(uint64)
 	queryCron := get("QUERY_CRON", *queryCronFlag, func(s string) interface{} { return s }).(string)
 	mutationCron := get("MUTATION_CRON", *mutationCronFlag, func(s string) interface{} { return s }).(string)
+	telegram := get("TELEGRAM", *telegramFlag, func(s string) interface{} {
+		ss := strings.Split(s, ",")
+		if len(ss) != 2 {
+			return nil
+		}
+
+		return &TelegramConfig{
+			BotToken: ss[0],
+			ChatId:   ss[1],
+		}
+	}).(*TelegramConfig)
+	var messagingProvider MessagingProvider
+	if telegram != nil {
+		messagingProvider = Telegram
+	} else if lineApiKey != "" {
+		messagingProvider = Line
+	} else {
+		messagingProvider = None
+	}
 
 	config = &Config{
 		IsDevelopment:     isDevelopment,
@@ -94,6 +130,8 @@ func loadConfig() (*Config, error) {
 		GasPriceThreshold: gasPriceThreashold,
 		QueryCron:         queryCron,
 		MutationCron:      mutationCron,
+		Telegram:          telegram,
+		MessagingProvider: messagingProvider,
 	}
 
 	return config, nil
