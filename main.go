@@ -52,8 +52,20 @@ func execute(conf config.Config) {
 
 	schedulerService := services.NewSchedulerService(cron.New())
 	lineService := services.NewLineService(&http.Client{}, conf.LineApiKey)
+	telegramService := services.NewTelegramService(&http.Client{}, conf.Telegram.BotToken, conf.Telegram.ChatId)
 	cacheService := services.NewCacheService(cache.DefaultExpiration, 10*time.Minute)
-	userService := services.NewUserService(myAddress, conf.UserPrivateKey, lineService, pancakeSwapService, cacheService, client)
+
+	var messagingService services.MessagingService
+	switch conf.MessagingProvider {
+	case config.Line:
+		messagingService = lineService
+	case config.Telegram:
+		messagingService = telegramService
+	default:
+		messagingService = nil
+	}
+
+	userService := services.NewUserService(myAddress, conf.UserPrivateKey, messagingService, pancakeSwapService, cacheService, client)
 
 	if conf.ForceRun {
 		userService.ProcessReward(conf.OnlyCheckReward)

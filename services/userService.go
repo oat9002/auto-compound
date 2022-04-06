@@ -17,7 +17,7 @@ const previousPendingCakeCacheKey = "pendingCakeSylupPool"
 type UserService struct {
 	address            common.Address
 	privateKey         string
-	lineService        *LineService
+	messagingService   MessagingService
 	pancakeSwapService *PancakeSwapService
 	cacheService       *CacheService
 	client             *ethclient.Client
@@ -31,11 +31,11 @@ type balanceInfo struct {
 	gasFee         float64
 }
 
-func NewUserService(address common.Address, privateKey string, lineService *LineService, pancakeSwapService *PancakeSwapService, cacheService *CacheService, client *ethclient.Client) *UserService {
+func NewUserService(address common.Address, privateKey string, messagingService MessagingService, pancakeSwapService *PancakeSwapService, cacheService *CacheService, client *ethclient.Client) *UserService {
 	userService := &UserService{
 		address:            address,
 		privateKey:         privateKey,
-		lineService:        lineService,
+		messagingService:   messagingService,
 		pancakeSwapService: pancakeSwapService,
 		cacheService:       cacheService,
 		client:             client,
@@ -137,5 +137,5 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 	}
 
 	msg := u.GetRewardMessage(balance)
-	u.lineService.SendMessage(msg)
+	u.messagingService.SendMessage(msg)
 }
