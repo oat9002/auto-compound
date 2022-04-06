@@ -137,5 +137,5 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 	}
 
 	msg := u.GetRewardMessage(balance)
-	u.lineService.Send(msg)
+	u.lineService.SendMessage(msg)
 }
