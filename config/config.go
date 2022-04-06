@@ -98,19 +98,19 @@ func loadConfig() (*Config, error) {
 	}).(uint64)
 	queryCron := get("QUERY_CRON", *queryCronFlag, func(s string) interface{} { return s }).(string)
 	mutationCron := get("MUTATION_CRON", *mutationCronFlag, func(s string) interface{} { return s }).(string)
-	telegram := get("TELEGRAM", *telegramFlag, func(s string) interface{} {
-		ss := strings.Split(s, ",")
-		if len(ss) != 2 {
-			return nil
+	telegramConfigString := get("TELEGRAM", *telegramFlag, func(s string) interface{} { return s }).(string)
+	var telegramConfig *TelegramConfig
+	if configSplit := strings.Split(telegramConfigString, ","); len(configSplit) != 2 {
+		telegramConfig = nil
+	} else {
+		telegramConfig = &TelegramConfig{
+			BotToken: configSplit[0],
+			ChatId:   configSplit[1],
 		}
+	}
 
-		return &TelegramConfig{
-			BotToken: ss[0],
-			ChatId:   ss[1],
-		}
-	}).(*TelegramConfig)
 	var messagingProvider MessagingProvider
-	if telegram != nil {
+	if telegramConfig != nil {
 		messagingProvider = Telegram
 	} else if lineApiKey != "" {
 		messagingProvider = Line
@@ -130,7 +130,7 @@ func loadConfig() (*Config, error) {
 		GasPriceThreshold: gasPriceThreashold,
 		QueryCron:         queryCron,
 		MutationCron:      mutationCron,
-		Telegram:          telegram,
+		Telegram:          telegramConfig,
 		MessagingProvider: messagingProvider,
 	}
 
