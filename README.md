@@ -1,6 +1,6 @@
 # auto-compound
 
--   Query and Auto compound following cron for cake-cake pool
+-   ~~Query and Auto compound following cron for cake-cake pool~~ (CakePool is migrated to MasterChefV2, no manual compound)
 -   Notify with Line Notify or Telegram
 
 ## Development in local
