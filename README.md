@@ -7,7 +7,7 @@
 
 Environment is defined in `.env` or using command-line argument, `-dev` in case using the binary file. Default is `production`.
 
-## How to generate pancake contract interface
+## How to generate smart contract interface
 
 ### Prerequisite
 
@@ -15,29 +15,14 @@ Environment is defined in `.env` or using command-line argument, `-dev` in case 
 
 ### Step
 
-1. Clone pancake contract into this repository [link](https://github.com/pancakeswap/pancake-farm.git)
-2. Inside `pancake-farm` folder, add this config to `truffle-config.js`
+1. find any smart contract you'd like to work with
+
+2. copy abi and binary code for that smart contract into your machine, for instance CakePool contract, you can find it from bscscan.
+
+3. Run
 
 ```
-plugins: ["@chainsafe/truffle-plugin-abigen"]
+docker run --rm -v <path-which-have-abi-and-bin>:/sources -v <path-to-project>/auto-compound/contracts:/output ethereum/client-go:alltools-latest abigen --bin=/sources/<bin-file> --abi=/sources/<abi-file> --pkg=<contract-name> --out=/output/<contract-name>.go
 ```
 
-3. Also add this command in `package.json`, under `scripts` section
-
-```
-"go:interface": "truffle compile && truffle run abigen MasterChef"
-```
-
-4. Run `yarn install`
-
-5. Run `yarn go:interface`
-
-6. Go back to project root by `cd ..`
-
-7. Run
-
-```
-docker run --rm -v <path-to-project>/auto-compound/pancake-farm/abigenBindings:/sources -v <path-to-project>/auto-compound/contracts:/output ethereum/client-go:alltools-latest abigen --bin=/sources/bin/MasterChef.bin --abi=/sources/abi/MasterChef.abi --pkg=masterChef --out=/output/MasterChef.go
-```
-
-8. Run `sudo chmod 755 ./contracts/MasterChef.go`
+4. Run `sudo chmod 755 ./contracts/<contract-name>.go`
