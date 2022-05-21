@@ -16,6 +16,7 @@ type PancakeSwapService struct {
 	client                *ethclient.Client
 	masterChefContract    *contracts.MasterChef
 	smartChefInitilizable *contracts.SmartChefInitializable
+	cakePoolContract      *contracts.CakePool
 	chainId               uint64
 	gasLimit              uint64
 	gasPriceThreshold     uint64
@@ -34,10 +35,17 @@ func NewPancakeSwapService(client *ethclient.Client, chainId uint64, gasLimit ui
 		return nil, err
 	}
 
+	cakePoolContract, err := getCakePool(client)
+
+	if err != nil {
+		return nil, err
+	}
+
 	service := &PancakeSwapService{
 		client:                client,
 		masterChefContract:    masterChefContract,
 		smartChefInitilizable: smartChefInitializable,
+		cakePoolContract:      cakePoolContract,
 		chainId:               chainId,
 		gasLimit:              gasLimit,
 		gasPriceThreshold:     gasPriceThreshold,
@@ -68,6 +76,17 @@ func getSmartChefInitializable(client *ethclient.Client) (*contracts.SmartChefIn
 	return contract, nil
 }
 
+func getCakePool(client *ethclient.Client) (*contracts.CakePool, error) {
+	contractAddress := common.HexToAddress("0x45c54210128a065de780C4B0Df3d16664f7f859e")
+	contract, err := contracts.NewCakePool(contractAddress, client)
+
+	if err != nil {
+		return nil, fmt.Errorf("create cakePool contract failed, %w", err)
+	}
+
+	return contract, nil
+}
+
 func (p *PancakeSwapService) GetPendingCakeFromSylupPool(address common.Address) (*big.Int, error) {
 	cakePool := big.NewInt(int64(0)) // Sylup pool
 	pendingCake, err := p.masterChefContract.PendingCake(utils.GetDefaultCallOpts(address), cakePool, address)
@@ -77,6 +96,26 @@ func (p *PancakeSwapService) GetPendingCakeFromSylupPool(address common.Address)
 	}
 
 	return pendingCake, nil
+}
+
+func (p *PancakeSwapService) GetCakeFromCakePool(address common.Address) (*big.Int, error) {
+	userInfo, err := p.cakePoolContract.UserInfo(utils.GetDefaultCallOpts(address), address)
+
+	if err != nil {
+		return big.NewInt(int64(0)), fmt.Errorf("get user info from cake pool failed, %w", err)
+	}
+
+	pricePerFullShare, err := p.cakePoolContract.GetPricePerFullShare(utils.GetDefaultCallOpts(address))
+
+	if err != nil {
+		return big.NewInt(int64(0)), fmt.Errorf("get price per full share from cake pool failed, %w", err)
+	}
+
+	stakedCake := &big.Int{}
+	i, pow := big.NewInt(10), big.NewInt(18)
+	i.Exp(i, pow, nil)
+
+	return stakedCake.Mul(userInfo.Shares, pricePerFullShare).Div(stakedCake, i).Sub(stakedCake, userInfo.UserBoostedShare), nil
 }
 
 func (p *PancakeSwapService) GetPendingBetaFromSylupPool(address common.Address) (*big.Int, error) {
