@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/oat9002/auto-compound/utils"
 )
@@ -80,27 +79,27 @@ func (u *UserService) GetRewardMessage(balance map[string]balanceInfo) string {
 	return strings.TrimSuffix(toReturn, "\n")
 }
 
-func (u *UserService) compoundOrHarvest(isOnlyCheckReward bool, prevCacheKey string, execute func() (*types.Transaction, error)) (bool, float64, error) {
-	if isOnlyCheckReward {
-		return false, 0, nil
-	}
+// func (u *UserService) compoundOrHarvest(isOnlyCheckReward bool, prevCacheKey string, execute func() (*types.Transaction, error)) (bool, float64, error) {
+// 	if isOnlyCheckReward {
+// 		return false, 0, nil
+// 	}
 
-	tx, err := execute()
+// 	tx, err := execute()
 
-	if err != nil {
-		return false, 0, err
-	}
+// 	if err != nil {
+// 		return false, 0, err
+// 	}
 
-	gasFee, err := utils.GetGasFee(u.client, tx.Hash())
+// 	gasFee, err := utils.GetGasFee(u.client, tx.Hash())
 
-	if err != nil {
-		return true, 0, err
-	}
+// 	if err != nil {
+// 		return true, 0, err
+// 	}
 
-	u.cacheService.Delete(prevCacheKey)
+// 	u.cacheService.Delete(prevCacheKey)
 
-	return true, gasFee, nil
-}
+// 	return true, gasFee, nil
+// }
 
 func (u *UserService) getPreviousToken(cacheKey string) *big.Int {
 	if previousToken, foundPreviousToken := u.cacheService.Get(cacheKey); foundPreviousToken {
