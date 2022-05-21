@@ -111,7 +111,7 @@ func (u *UserService) getPreviousToken(cacheKey string) *big.Int {
 }
 
 func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
-	pendingCake, err := u.pancakeSwapService.GetPendingCakeFromSylupPool(u.address)
+	pendingCake, err := u.pancakeSwapService.GetCakeFromCakePool(u.address)
 	defer u.cacheService.SetWithoutExpiry(previousPendingCakeCacheKey, pendingCake)
 
 	if err != nil {
@@ -119,22 +119,13 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 		return
 	}
 
-	isCompoundCake, compoundCakeGasFee, err := u.compoundOrHarvest(isOnlyCheckReward, previousPendingCakeCacheKey, func() (*types.Transaction, error) {
-		return u.pancakeSwapService.CompoundEarnCake(u.privateKey, pendingCake)
-	})
-
-	if err != nil && !isCompoundCake {
-		fmt.Printf("compoundOrHarvest failed, %s\n", err)
-		return
-	}
-
 	balance := make(map[string]balanceInfo)
 	balance["cake"] = balanceInfo{
 		amount:         pendingCake,
 		previousAmount: u.getPreviousToken(previousPendingCakeCacheKey),
-		isCompound:     isCompoundCake,
+		isCompound:     false,
 		isHarvest:      false,
-		gasFee:         compoundCakeGasFee,
+		gasFee:         0,
 	}
 
 	msg := u.GetRewardMessage(balance)

@@ -5,7 +5,6 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 
 	"github.com/oat9002/auto-compound/contracts"
@@ -87,17 +86,6 @@ func getCakePool(client *ethclient.Client) (*contracts.CakePool, error) {
 	return contract, nil
 }
 
-func (p *PancakeSwapService) GetPendingCakeFromSylupPool(address common.Address) (*big.Int, error) {
-	cakePool := big.NewInt(int64(0)) // Sylup pool
-	pendingCake, err := p.masterChefContract.PendingCake(utils.GetDefaultCallOpts(address), cakePool, address)
-
-	if err != nil {
-		return big.NewInt(int64(0)), fmt.Errorf("get pending cake failed, %w", err)
-	}
-
-	return pendingCake, nil
-}
-
 func (p *PancakeSwapService) GetCakeFromCakePool(address common.Address) (*big.Int, error) {
 	userInfo, err := p.cakePoolContract.UserInfo(utils.GetDefaultCallOpts(address), address)
 
@@ -116,46 +104,4 @@ func (p *PancakeSwapService) GetCakeFromCakePool(address common.Address) (*big.I
 	i.Exp(i, pow, nil)
 
 	return stakedCake.Mul(userInfo.Shares, pricePerFullShare).Div(stakedCake, i).Sub(stakedCake, userInfo.UserBoostedShare), nil
-}
-
-func (p *PancakeSwapService) GetPendingBetaFromSylupPool(address common.Address) (*big.Int, error) {
-	pendingBeta, err := p.smartChefInitilizable.PendingReward(utils.GetDefaultCallOpts(address), address)
-
-	if err != nil {
-		return big.NewInt(int64(0)), fmt.Errorf("get pending beta failed, %w", err)
-	}
-
-	return pendingBeta, nil
-}
-
-func (p *PancakeSwapService) CompoundEarnCake(privateKey string, amount *big.Int) (*types.Transaction, error) {
-	txOpts, err := utils.GetDefautlTransactionOpts(p.client, privateKey, p.chainId, p.gasLimit, p.gasPriceThreshold)
-
-	if err != nil {
-		return nil, fmt.Errorf("get default trandaction opts failed, %w", err)
-	}
-
-	transaction, err := p.masterChefContract.EnterStaking(txOpts, amount)
-
-	if err != nil {
-		return nil, fmt.Errorf("enter staking failed, %w", err)
-	}
-
-	return transaction, nil
-}
-
-func (p *PancakeSwapService) HarvestEarnBeta(privateKey string) (*types.Transaction, error) {
-	txOpts, err := utils.GetDefautlTransactionOpts(p.client, privateKey, p.chainId, p.gasLimit, p.gasPriceThreshold)
-
-	if err != nil {
-		return nil, fmt.Errorf("get default trandaction opts failed, %w", err)
-	}
-
-	transaction, err := p.smartChefInitilizable.Deposit(txOpts, big.NewInt(0))
-
-	if err != nil {
-		return nil, fmt.Errorf("HarvestEarnBeta failed, %w", err)
-	}
-
-	return transaction, nil
 }
