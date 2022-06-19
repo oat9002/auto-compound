@@ -21,6 +21,18 @@ type PancakeSwapService struct {
 	gasPriceThreshold     uint64
 }
 
+type UserInfo struct {
+	Shares               *big.Int
+	LastDepositedTime    *big.Int
+	CakeAtLastUserAction *big.Int
+	LastUserActionTime   *big.Int
+	LockStartTime        *big.Int
+	LockEndTime          *big.Int
+	UserBoostedShare     *big.Int
+	Locked               bool
+	LockedAmount         *big.Int
+}
+
 func NewPancakeSwapService(client *ethclient.Client, chainId uint64, gasLimit uint64, gasPriceThreshold uint64) (*PancakeSwapService, error) {
 	masterChefContract, err := getMasterChefContract(client)
 
@@ -86,11 +98,31 @@ func getCakePoolContract(client *ethclient.Client) (*contracts.CakePool, error) 
 	return contract, nil
 }
 
-func (p *PancakeSwapService) GetEarningCakeSinceLastActionFromCakePool(address common.Address) (*big.Int, error) {
+func (p *PancakeSwapService) GetUserInfoFromCakePool(address common.Address) (*UserInfo, error) {
 	userInfo, err := p.cakePoolContract.UserInfo(utils.GetDefaultCallOpts(address), address)
 
 	if err != nil {
-		return big.NewInt(int64(0)), fmt.Errorf("get user info from cake pool failed, %w", err)
+		return nil, fmt.Errorf("get user info from cake pool failed, %w", err)
+	}
+
+	return &UserInfo{
+		Shares:               userInfo.Shares,
+		LastDepositedTime:    userInfo.LastDepositedTime,
+		CakeAtLastUserAction: userInfo.CakeAtLastUserAction,
+		LastUserActionTime:   userInfo.LastUserActionTime,
+		LockStartTime:        userInfo.LockStartTime,
+		LockEndTime:          userInfo.LockEndTime,
+		UserBoostedShare:     userInfo.UserBoostedShare,
+		Locked:               userInfo.Locked,
+		LockedAmount:         userInfo.LockedAmount,
+	}, nil
+}
+
+func (p *PancakeSwapService) GetEarningCakeSinceLastActionFromCakePool(address common.Address) (*big.Int, error) {
+	userInfo, err := p.GetUserInfoFromCakePool(address)
+
+	if err != nil {
+		return big.NewInt(int64(0)), err
 	}
 
 	pricePerFullShare, err := p.cakePoolContract.GetPricePerFullShare(utils.GetDefaultCallOpts(address))
