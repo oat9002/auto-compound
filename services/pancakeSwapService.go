@@ -28,13 +28,13 @@ func NewPancakeSwapService(client *ethclient.Client, chainId uint64, gasLimit ui
 		return nil, err
 	}
 
-	smartChefInitializable, err := getSmartChefInitializable(client)
+	smartChefInitializable, err := getSmartChefInitializableContract(client)
 
 	if err != nil {
 		return nil, err
 	}
 
-	cakePoolContract, err := getCakePool(client)
+	cakePoolContract, err := getCakePoolContract(client)
 
 	if err != nil {
 		return nil, err
@@ -64,7 +64,7 @@ func getMasterChefContract(client *ethclient.Client) (*contracts.MasterChef, err
 	return contract, nil
 }
 
-func getSmartChefInitializable(client *ethclient.Client) (*contracts.SmartChefInitializable, error) {
+func getSmartChefInitializableContract(client *ethclient.Client) (*contracts.SmartChefInitializable, error) {
 	contractAddress := common.HexToAddress("0x6f660C58723922c6f866a058199FF4881019B4B5")
 	contract, err := contracts.NewSmartChefInitializable(contractAddress, client)
 
@@ -75,7 +75,7 @@ func getSmartChefInitializable(client *ethclient.Client) (*contracts.SmartChefIn
 	return contract, nil
 }
 
-func getCakePool(client *ethclient.Client) (*contracts.CakePool, error) {
+func getCakePoolContract(client *ethclient.Client) (*contracts.CakePool, error) {
 	contractAddress := common.HexToAddress("0x45c54210128a065de780C4B0Df3d16664f7f859e")
 	contract, err := contracts.NewCakePool(contractAddress, client)
 
@@ -86,7 +86,7 @@ func getCakePool(client *ethclient.Client) (*contracts.CakePool, error) {
 	return contract, nil
 }
 
-func (p *PancakeSwapService) GetCakeFromCakePool(address common.Address) (*big.Int, error) {
+func (p *PancakeSwapService) GetEarningCakeSinceLastActionFromCakePool(address common.Address) (*big.Int, error) {
 	userInfo, err := p.cakePoolContract.UserInfo(utils.GetDefaultCallOpts(address), address)
 
 	if err != nil {
@@ -100,8 +100,11 @@ func (p *PancakeSwapService) GetCakeFromCakePool(address common.Address) (*big.I
 	}
 
 	stakedCake := &big.Int{}
+	earningCake := &big.Int{}
 	i, pow := big.NewInt(10), big.NewInt(18)
 	i.Exp(i, pow, nil)
+	stakedCake.Mul(userInfo.Shares, pricePerFullShare).Div(stakedCake, i).Sub(stakedCake, userInfo.UserBoostedShare)
+	earningCake.Sub(stakedCake, userInfo.CakeAtLastUserAction)
 
-	return stakedCake.Mul(userInfo.Shares, pricePerFullShare).Div(stakedCake, i).Sub(stakedCake, userInfo.UserBoostedShare), nil
+	return earningCake, nil
 }
