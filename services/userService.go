@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/oat9002/auto-compound/utils"
 )
@@ -80,27 +79,27 @@ func (u *UserService) GetRewardMessage(balance map[string]balanceInfo) string {
 	return strings.TrimSuffix(toReturn, "\n")
 }
 
-func (u *UserService) compoundOrHarvest(isOnlyCheckReward bool, prevCacheKey string, execute func() (*types.Transaction, error)) (bool, float64, error) {
-	if isOnlyCheckReward {
-		return false, 0, nil
-	}
+// func (u *UserService) compoundOrHarvest(isOnlyCheckReward bool, prevCacheKey string, execute func() (*types.Transaction, error)) (bool, float64, error) {
+// 	if isOnlyCheckReward {
+// 		return false, 0, nil
+// 	}
 
-	tx, err := execute()
+// 	tx, err := execute()
 
-	if err != nil {
-		return false, 0, err
-	}
+// 	if err != nil {
+// 		return false, 0, err
+// 	}
 
-	gasFee, err := utils.GetGasFee(u.client, tx.Hash())
+// 	gasFee, err := utils.GetGasFee(u.client, tx.Hash())
 
-	if err != nil {
-		return true, 0, err
-	}
+// 	if err != nil {
+// 		return true, 0, err
+// 	}
 
-	u.cacheService.Delete(prevCacheKey)
+// 	u.cacheService.Delete(prevCacheKey)
 
-	return true, gasFee, nil
-}
+// 	return true, gasFee, nil
+// }
 
 func (u *UserService) getPreviousToken(cacheKey string) *big.Int {
 	if previousToken, foundPreviousToken := u.cacheService.Get(cacheKey); foundPreviousToken {
@@ -111,30 +110,21 @@ func (u *UserService) getPreviousToken(cacheKey string) *big.Int {
 }
 
 func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
-	pendingCake, err := u.pancakeSwapService.GetPendingCakeFromSylupPool(u.address)
-	defer u.cacheService.SetWithoutExpiry(previousPendingCakeCacheKey, pendingCake)
+	earningCake, err := u.pancakeSwapService.GetEarningCakeSinceLastActionFromCakePool(u.address)
+	defer u.cacheService.SetWithoutExpiry(previousPendingCakeCacheKey, earningCake)
 
 	if err != nil {
 		fmt.Printf("GetPendingCakeFromSylupPool failed, %s\n", err)
 		return
 	}
 
-	isCompoundCake, compoundCakeGasFee, err := u.compoundOrHarvest(isOnlyCheckReward, previousPendingCakeCacheKey, func() (*types.Transaction, error) {
-		return u.pancakeSwapService.CompoundEarnCake(u.privateKey, pendingCake)
-	})
-
-	if err != nil && !isCompoundCake {
-		fmt.Printf("compoundOrHarvest failed, %s\n", err)
-		return
-	}
-
 	balance := make(map[string]balanceInfo)
 	balance["cake"] = balanceInfo{
-		amount:         pendingCake,
+		amount:         earningCake,
 		previousAmount: u.getPreviousToken(previousPendingCakeCacheKey),
-		isCompound:     isCompoundCake,
+		isCompound:     false,
 		isHarvest:      false,
-		gasFee:         compoundCakeGasFee,
+		gasFee:         0,
 	}
 
 	msg := u.GetRewardMessage(balance)
