@@ -7,22 +7,18 @@
 
 Environment is defined in `.env` or using command-line argument, `-dev` in case using the binary file. Default is `production`.
 
-## How to generate smart contract interface
+## How to generate contract interface
 
 ### Prerequisite
 
 -   docker
 
 ### Step
-
-1. find any smart contract you'd like to work with
-
-2. copy abi and binary code for that smart contract into your machine, for instance CakePool contract, you can find it from bscscan.
-
-3. Run
-
+1. Find any contract you like, both abi and binary find and save in to your local machine
+2. Start docker and run this command `(<...> fill in this first)`
 ```
-docker run --rm -v <path-which-have-abi-and-bin>:/sources -v <path-to-project>/auto-compound/contracts:/output ethereum/client-go:alltools-latest abigen --bin=/sources/<bin-file> --abi=/sources/<abi-file> --pkg=<contract-name> --out=/output/<contract-name>.go
+docker run --rm -v <path-to-your-contract-folder>:/sources -v <path-to-your-contract-folder>:/output ethereum/client-go:alltools-latest abigen --bin=/sources/<your-contract-binary-file> --abi=/sources/<your-contract-abit> --pkg=<package-name> --out=/output/<go-file-name>
 ```
 
-4. Run `sudo chmod 755 ./contracts/<contract-name>.go`
+3. Run `sudo chmod 755 <path-to-your-contract-folder>/<go-file-name>`
+4. Copy your go file to `contracts` folder in the project
