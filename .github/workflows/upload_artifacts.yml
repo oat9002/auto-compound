@@ -14,10 +14,10 @@ jobs:
             - name: Set up Go
               uses: actions/setup-go@v2
               with:
-                  go-version: 1.17
+                  go-version: 1.18
 
             - name: Build Executable files
-              run: ./build-executable.sh
+              run: make
 
             - name: Set GitHub user
               run: |
