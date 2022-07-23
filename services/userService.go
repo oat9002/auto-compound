@@ -17,7 +17,7 @@ const previousPendingCakeCacheKey = "pendingCakeSylupPool"
 type UserService struct {
 	address            common.Address
 	privateKey         string
-	messagingService   MessagingService
+	messagingService   *MessagingService
 	pancakeSwapService *PancakeSwapService
 	cacheService       *CacheService
 	client             *ethclient.Client
