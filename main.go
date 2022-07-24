@@ -9,6 +9,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/oat9002/auto-compound/config"
 	"github.com/oat9002/auto-compound/services"
+	c "github.com/oat9002/auto-compound/services/cache"
+	"github.com/oat9002/auto-compound/services/crypto"
+	"github.com/oat9002/auto-compound/services/messaging"
 	"github.com/patrickmn/go-cache"
 	"github.com/robfig/cron/v3"
 )
@@ -35,7 +38,7 @@ func main() {
 func execute(conf config.Config) {
 	network, chainId := conf.GetBscNetworkAndChainId()
 	myAddress := common.HexToAddress(conf.UserAddress)
-	clientService := services.NewClientService()
+	clientService := crypto.NewClientService()
 	client, err := clientService.GetClient(network)
 
 	if err != nil {
@@ -43,7 +46,7 @@ func execute(conf config.Config) {
 		return
 	}
 
-	pancakeSwapService, err := services.NewPancakeSwapService(client, uint64(chainId), conf.GasLimit, conf.GasPriceThreshold)
+	pancakeSwapService, err := crypto.NewPancakeSwapService(client, uint64(chainId), conf.GasLimit, conf.GasPriceThreshold)
 
 	if err != nil {
 		log.Fatal(err)
@@ -51,11 +54,11 @@ func execute(conf config.Config) {
 	}
 
 	schedulerService := services.NewSchedulerService(cron.New())
-	lineService := services.NewLineService(&http.Client{}, conf.LineApiKey)
-	telegramService := services.NewTelegramService(&http.Client{}, conf.Telegram.BotToken, conf.Telegram.ChatId)
-	cacheService := services.NewCacheService(cache.DefaultExpiration, 10*time.Minute)
+	lineService := messaging.NewLineService(&http.Client{}, conf.LineApiKey)
+	telegramService := messaging.NewTelegramService(&http.Client{}, conf.Telegram.BotToken, conf.Telegram.ChatId)
+	cacheService := c.NewInMemCacheService(cache.DefaultExpiration, 10*time.Minute)
 
-	var messagingService services.MessagingService
+	var messagingService messaging.MessagingService
 	switch conf.MessagingProvider {
 	case config.Line:
 		messagingService = lineService

@@ -1,4 +1,4 @@
-package services
+package cache
 
 type CacheService interface {
 	SetWithoutExpiry(key string, value interface{})
