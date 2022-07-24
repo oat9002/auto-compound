@@ -7,12 +7,13 @@ import (
 
 	"github.com/oat9002/auto-compound/config"
 	"github.com/oat9002/auto-compound/services"
+	"github.com/oat9002/auto-compound/services/crypto"
 	"github.com/oat9002/auto-compound/utils"
 )
 
 func executeTest(conf config.Config) {
 	network, chainId := conf.GetBscNetworkAndChainId()
-	clientService := services.NewClientService()
+	clientService := crypto.NewClientService()
 	client, err := clientService.GetClient(network)
 
 	if err != nil {
