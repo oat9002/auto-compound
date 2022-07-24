@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/oat9002/auto-compound/config"
-	"github.com/oat9002/auto-compound/services"
 	"github.com/oat9002/auto-compound/services/crypto"
 	"github.com/oat9002/auto-compound/utils"
 )
@@ -21,7 +20,7 @@ func executeTest(conf config.Config) {
 		return
 	}
 
-	testContract, err := services.NewTestContractService(client, uint64(chainId), conf.GasLimit, conf.GasPriceThreshold)
+	testContract, err := crypto.NewTestContractService(client, uint64(chainId), conf.GasLimit, conf.GasPriceThreshold)
 
 	if err != nil {
 		log.Fatal(err)
