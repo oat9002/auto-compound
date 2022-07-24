@@ -1,4 +1,4 @@
-package services
+package user
 
 import (
 	"fmt"
@@ -9,6 +9,9 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
+	c "github.com/oat9002/auto-compound/services/cache"
+	"github.com/oat9002/auto-compound/services/crypto"
+	"github.com/oat9002/auto-compound/services/messaging"
 	"github.com/oat9002/auto-compound/utils"
 )
 
@@ -17,9 +20,9 @@ const previousPendingCakeCacheKey = "pendingCakeSylupPool"
 type UserService struct {
 	address            common.Address
 	privateKey         string
-	messagingService   MessagingService
-	pancakeSwapService *PancakeSwapService
-	cacheService       *CacheService
+	messagingService   messaging.MessagingService
+	pancakeSwapService *crypto.PancakeSwapService
+	cacheService       c.CacheService
 	client             *ethclient.Client
 }
 
@@ -31,7 +34,7 @@ type balanceInfo struct {
 	gasFee         float64
 }
 
-func NewUserService(address common.Address, privateKey string, messagingService MessagingService, pancakeSwapService *PancakeSwapService, cacheService *CacheService, client *ethclient.Client) *UserService {
+func NewUserService(address common.Address, privateKey string, messagingService messaging.MessagingService, pancakeSwapService *crypto.PancakeSwapService, cacheService c.CacheService, client *ethclient.Client) *UserService {
 	userService := &UserService{
 		address:            address,
 		privateKey:         privateKey,

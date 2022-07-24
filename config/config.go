@@ -71,14 +71,14 @@ func loadConfig() (*Config, error) {
 	flag.Parse()
 	godotenv.Load()
 
-	isDevelopment := get("MODE", *isDevelopmentFlag, func(s string) interface{} { return s == "development" }).(bool)
-	useTestNetWork := get("USE_TEST_NETWORK", *useTestNetWorkFlag, func(s string) interface{} { return s == "true" }).(bool)
-	onlyCheckReward := get("ONLY_CHECK_REWARD", *onlyCheckRewardFlag, func(s string) interface{} { return s == "true" }).(bool)
-	forceRun := get("FORCE_RUN", *forceRunFlag, func(s string) interface{} { return s == "true" }).(bool)
-	userAddress := get("USER_ADDRESS", *userAddressFlag, func(s string) interface{} { return s }).(string)
-	userPrivateKey := get("USER_PRIVATE_KEY", *userPrivateKeyFlag, func(s string) interface{} { return s }).(string)
-	lineApiKey := get("LINE_API_KEY", *lineApiKeyFlag, func(s string) interface{} { return s }).(string)
-	gasLimit := get("GAS_LIMIT", *gasLimitFlag, func(s string) interface{} {
+	isDevelopment := get("MODE", *isDevelopmentFlag, func(s string) bool { return s == "development" })
+	useTestNetWork := get("USE_TEST_NETWORK", *useTestNetWorkFlag, func(s string) bool { return s == "true" })
+	onlyCheckReward := get("ONLY_CHECK_REWARD", *onlyCheckRewardFlag, func(s string) bool { return s == "true" })
+	forceRun := get("FORCE_RUN", *forceRunFlag, func(s string) bool { return s == "true" })
+	userAddress := get("USER_ADDRESS", *userAddressFlag, func(s string) string { return s })
+	userPrivateKey := get("USER_PRIVATE_KEY", *userPrivateKeyFlag, func(s string) string { return s })
+	lineApiKey := get("LINE_API_KEY", *lineApiKeyFlag, func(s string) string { return s })
+	gasLimit := get("GAS_LIMIT", *gasLimitFlag, func(s string) uint64 {
 		limit, err := strconv.ParseUint(s, 10, 64)
 
 		if err != nil {
@@ -86,8 +86,8 @@ func loadConfig() (*Config, error) {
 		}
 
 		return limit
-	}).(uint64)
-	gasPriceThreashold := get("GAS_PRICE_THRESHOLD", *gasPriceThresholdFlag, func(s string) interface{} {
+	})
+	gasPriceThreashold := get("GAS_PRICE_THRESHOLD", *gasPriceThresholdFlag, func(s string) uint64 {
 		threshold, err := strconv.ParseUint(s, 10, 64)
 
 		if err != nil {
@@ -95,10 +95,10 @@ func loadConfig() (*Config, error) {
 		}
 
 		return threshold
-	}).(uint64)
-	queryCron := get("QUERY_CRON", *queryCronFlag, func(s string) interface{} { return s }).(string)
-	mutationCron := get("MUTATION_CRON", *mutationCronFlag, func(s string) interface{} { return s }).(string)
-	telegramConfigString := get("TELEGRAM", *telegramFlag, func(s string) interface{} { return s }).(string)
+	})
+	queryCron := get("QUERY_CRON", *queryCronFlag, func(s string) string { return s })
+	mutationCron := get("MUTATION_CRON", *mutationCronFlag, func(s string) string { return s })
+	telegramConfigString := get("TELEGRAM", *telegramFlag, func(s string) string { return s })
 	var telegramConfig *TelegramConfig
 	if configSplit := strings.Split(telegramConfigString, ","); len(configSplit) != 2 {
 		telegramConfig = nil
@@ -141,7 +141,7 @@ func getEnv(env string) (string, bool) {
 	return os.LookupEnv(prefixEnv + env)
 }
 
-func get(evnName string, defaultValue interface{}, parseFunc func(string) interface{}) interface{} {
+func get[T any](evnName string, defaultValue T, parseFunc func(string) T) T {
 	if env, isExist := getEnv(evnName); isExist {
 		return parseFunc(env)
 	}
