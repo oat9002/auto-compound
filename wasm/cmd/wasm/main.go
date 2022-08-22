@@ -11,7 +11,7 @@ import (
 
 func main() {
 	done := make(chan struct{}, 0)
-	js.Global().Set("getUserInfoFromCakePool", js.FuncOf(getUserInfoFromCakePool))
+	js.Global().Set("wasmGetUserInfoFromCakePool", js.FuncOf(getUserInfoFromCakePool))
 	<-done
 }
 
@@ -34,5 +34,4 @@ func getUserInfoFromCakePool(this js.Value, args []js.Value) interface{} {
 
 	toReturn := fmt.Sprintf("Lock amount: %s", userInfo.LockedAmount.Text(10))
 	return toReturn
-
 }

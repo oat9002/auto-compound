@@ -17,19 +17,28 @@
             <label for="inputField">Enter value</label>
             <input id="inputField" name="Hash" type="text" />
             <button id="fetchBtn">Fetch</button>
-            <div id="outputHash" style="font-size: 20px"></div>
+            <div id="output" style="font-size: 20px"></div>
         </div>
         <script>
             const inputField = document.querySelector("#inputField");
-            const outputHash = document.querySelector("#outputHash");
+            const output = document.querySelector("#output");
             const fetchBtn = document.querySelector("#fetchBtn");
 
             fetchBtn.addEventListener("click", function () {
                 console.log("click");
-                outputHash.innerHTML = getUserInfoFromCakePool(
-                    inputField.value
-                );
+                getUserInfoFromCakePool(inputField.value).then((result) => {
+                    console.log(result);
+                    output.innerHTML = result;
+                });
             });
+
+            function getUserInfoFromCakePool(address) {
+                return new Promise((resolve, reject) => {
+                    const result = wasmGetUserInfoFromCakePool(address);
+
+                    resolve(result);
+                });
+            }
         </script>
     </body>
 </html>
