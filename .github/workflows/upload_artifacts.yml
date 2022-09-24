@@ -9,7 +9,7 @@ jobs:
     upload_artifacts:
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v2
+            - uses: actions/checkout@v3
 
             - name: Set up Go
               uses: actions/setup-go@v2
@@ -35,19 +35,8 @@ jobs:
                   omitName: true
                   omitNameDuringUpdate: true
 
-    build_docker:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v2
-
-            - name: Login to Docker Hub
-              uses: docker/login-action@v1
-              with:
-                  username: ${{ secrets.DOCKERHUB_USERNAME }}
-                  password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-            - name: Docker build
-              run: docker build -t oat9002/auto-compound:latest .
-
-            - name: Docker publish
-              run: docker push oat9002/auto-compound
+    build_and_publish_docker:
+        uses: ./.github/workflows/docker.yml
+        secrets:
+            DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+            DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
