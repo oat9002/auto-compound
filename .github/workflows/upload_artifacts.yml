@@ -35,7 +35,7 @@ jobs:
                   omitName: true
                   omitNameDuringUpdate: true
 
-    build_and_publish_docker:
+    docker:
         uses: ./.github/workflows/docker.yml
         secrets:
             DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
