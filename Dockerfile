@@ -19,7 +19,8 @@ RUN go build -o /auto-compound
 # Runner
 FROM alpine:latest  
 
-# RUN apk add --no-cache gcc
+RUN apk add --no-cache tzdata
+ENV TZ=Asia/Bangkok
 
 WORKDIR /app
 
