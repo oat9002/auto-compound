@@ -5,3 +5,6 @@ services:
         restart: always
         env_file:
             - .env
+        volumes:
+        - "/etc/timezone:/etc/timezone:ro"
+        - "/etc/localtime:/etc/localtime:ro"

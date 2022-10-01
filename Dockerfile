@@ -19,9 +19,6 @@ RUN go build -o /auto-compound
 # Runner
 FROM alpine:latest  
 
-RUN apk add --no-cache tzdata
-ENV TZ=Asia/Bangkok
-
 WORKDIR /app
 
 COPY --from=builder /auto-compound ./auto-compound
