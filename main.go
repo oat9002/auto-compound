@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -32,8 +35,15 @@ func main() {
 		execute(conf)
 	}
 
+	createHealthcheckFile()
 	fmt.Println("\nPlease Ctrl+C to exit.")
-	select {}
+
+	gracefulStop := make(chan os.Signal, 1)
+	signal.Notify(gracefulStop, syscall.SIGTERM)
+	signal.Notify(gracefulStop, syscall.SIGINT)
+
+	<-gracefulStop
+	removeHealthcheckfile()
 }
 
 func execute(conf config.Config) {
@@ -63,25 +73,43 @@ func execute(conf config.Config) {
 
 	if conf.ForceRun {
 		userService.ProcessReward(conf.OnlyCheckReward)
-	} else {
-		_, err := schedulerService.AddFunc(conf.QueryCron, func() {
-			userService.ProcessReward(true)
+
+		return
+	}
+	_, err = schedulerService.AddFunc(conf.QueryCron, func() {
+		userService.ProcessReward(true)
+	})
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if !conf.OnlyCheckReward {
+		_, err = schedulerService.AddFunc(conf.MutationCron, func() {
+			userService.ProcessReward(false)
 		})
 
 		if err != nil {
 			log.Fatal(err)
 		}
+	}
 
-		if !conf.OnlyCheckReward {
-			_, err = schedulerService.AddFunc(conf.MutationCron, func() {
-				userService.ProcessReward(false)
-			})
+	schedulerService.RunAsync()
+}
 
-			if err != nil {
-				log.Fatal(err)
-			}
-		}
+func createHealthcheckFile() {
+	alive := []byte("Alive")
+	err := os.WriteFile("/tmp/auto-compound-healthcheck.txt", alive, 0644)
 
-		schedulerService.RunAsync()
+	if err != nil {
+		panic(err)
+	}
+}
+
+func removeHealthcheckfile() {
+	err := os.Remove("/tmp/auto-compound-healthcheck.txt")
+
+	if err != nil {
+		panic(err)
 	}
 }

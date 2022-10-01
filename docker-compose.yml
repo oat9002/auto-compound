@@ -5,3 +5,12 @@ services:
         restart: always
         env_file:
             - .env
+        volumes:
+        - "/etc/timezone:/etc/timezone:ro"
+        - "/etc/localtime:/etc/localtime:ro"
+        healthcheck:
+            test: ["CMD", "sh", "/app/healthcheck.sh"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+            start_period: 10s

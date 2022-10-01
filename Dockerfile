@@ -12,6 +12,7 @@ COPY contracts ./contracts
 COPY services ./services
 COPY utils ./utils
 COPY *.go ./
+COPY healthcheck.sh ./
 
 RUN go mod download
 RUN go build -o /auto-compound
@@ -19,11 +20,12 @@ RUN go build -o /auto-compound
 # Runner
 FROM alpine:latest  
 
-RUN apk add --no-cache tzdata
-ENV TZ=Asia/Bangkok
+RUN apk add --no-cache bash
 
 WORKDIR /app
 
 COPY --from=builder /auto-compound ./auto-compound
+COPY --from=builder /app/healthcheck.sh ./healthcheck.sh
+
 CMD ["/app/auto-compound"]
 
