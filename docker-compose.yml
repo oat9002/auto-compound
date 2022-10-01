@@ -9,7 +9,7 @@ services:
         - "/etc/timezone:/etc/timezone:ro"
         - "/etc/localtime:/etc/localtime:ro"
         healthcheck:
-            test: ["/bin/sh", "/app/healthcheck.sh"]
+            test: ["CMD", "sh", "/app/healthcheck.sh"]
             interval: 5s
             timeout: 5s
             retries: 5
