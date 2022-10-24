@@ -1,7 +1,5 @@
 # Builder
-FROM golang:1.18-alpine AS builder
-
-RUN apk add --no-cache gcc musl-dev linux-headers git
+FROM golang:1.19-bullseye AS builder
 
 WORKDIR /app
 
@@ -18,9 +16,7 @@ RUN go mod download
 RUN go build -o /auto-compound
 
 # Runner
-FROM alpine:latest  
-
-RUN apk add --no-cache bash
+FROM debian:bullseye-slim 
 
 WORKDIR /app
 

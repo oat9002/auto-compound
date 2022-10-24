@@ -6,7 +6,6 @@ services:
         env_file:
             - .env
         volumes:
-        - "/etc/timezone:/etc/timezone:ro"
         - "/etc/localtime:/etc/localtime:ro"
         healthcheck:
             test: ["CMD", "sh", "/app/healthcheck.sh"]
