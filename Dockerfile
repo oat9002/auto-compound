@@ -16,7 +16,7 @@ RUN go mod download
 RUN go build -o /auto-compound
 
 # Runner
-FROM debian:bullseye-slim 
+FROM gcr.io/distroless/base-debian11:latest
 
 WORKDIR /app
 
