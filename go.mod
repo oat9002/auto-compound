@@ -1,6 +1,6 @@
 module github.com/oat9002/auto-compound
 
-go 1.18
+go 1.19
 
 require (
 	github.com/ethereum/go-ethereum v1.10.26
