@@ -21,6 +21,10 @@ func (c *InMemCacheService) SetWithoutExpiry(key string, value interface{}) {
 	c.cache.Set(key, value, cache.NoExpiration)
 }
 
+func (c *InMemCacheService) Set(key string, value interface{}, expiry time.Duration) {
+	c.cache.Set(key, value, expiry)
+}
+
 func (c *InMemCacheService) Get(key string) (interface{}, bool) {
 	return c.cache.Get(key)
 }

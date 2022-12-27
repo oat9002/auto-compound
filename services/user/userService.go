@@ -6,6 +6,8 @@ import (
 	"math"
 	"math/big"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -16,8 +18,11 @@ import (
 )
 
 const previousPendingCakeCacheKey = "pendingCakeSylupPool"
+const lockKey = "lock"
+const lockDuration = 10 * time.Second
 
 type UserService struct {
+	mu                 sync.Mutex
 	address            common.Address
 	privateKey         string
 	messagingService   messaging.MessagingService
@@ -113,6 +118,15 @@ func (u *UserService) getPreviousToken(cacheKey string) *big.Int {
 }
 
 func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
+	u.mu.Lock()
+	defer u.mu.Unlock()
+
+	if isLock, foundIsLock := u.cacheService.Get(lockKey); foundIsLock && isLock.(bool) {
+		log.Println("Still locking within 10 seconds")
+		return
+	}
+	u.cacheService.Set(lockKey, true, lockDuration)
+
 	earningCake, err := u.pancakeSwapService.GetEarningCakeSinceLastActionFromCakePool(u.address)
 	defer u.cacheService.SetWithoutExpiry(previousPendingCakeCacheKey, earningCake)
 
