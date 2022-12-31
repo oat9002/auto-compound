@@ -131,7 +131,7 @@ func (u *UserService) ProcessReward(isOnlyCheckReward bool) {
 	defer u.cacheService.SetWithoutExpiry(previousPendingCakeCacheKey, earningCake)
 
 	if err != nil {
-		fmt.Printf("GetPendingCakeFromSylupPool failed, %s\n", err)
+		log.Printf("GetPendingCakeFromSylupPool failed, %s\n", err)
 		return
 	}
 

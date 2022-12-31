@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"strconv"
 
@@ -34,7 +33,7 @@ func executeTest(conf config.Config) {
 		return
 	}
 
-	fmt.Println("Get GasFee")
+	log.Println("Get GasFee")
 
 	gasFee, err := utils.GetGasFee(client, transaction.Hash())
 
@@ -43,5 +42,5 @@ func executeTest(conf config.Config) {
 		return
 	}
 
-	fmt.Println("gas fee: " + strconv.FormatFloat(gasFee, 'e', 6, 64))
+	log.Println("gas fee: " + strconv.FormatFloat(gasFee, 'e', 6, 64))
 }
