@@ -1,7 +1,7 @@
 # auto-compound
 
--   ~~Query and Auto compound following cron for cake-cake pool~~ CakePool is migrated to MasterChefV2, no manual compound. Currently, it checks CAKE earning from last action.
--   Notify with Line Notify or Telegram
+- Query and Auto compound following cron for VE Cake
+- Notify with Line Notify or Telegram
 
 ## Development in local
 
@@ -11,7 +11,7 @@ Environment is defined in `.env` or using command-line argument, `-dev` in case 
 
 ### Prerequisite
 
--   docker
+- docker
 
 ### Step
 
