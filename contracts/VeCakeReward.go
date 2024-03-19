@@ -1,7 +1,7 @@
 // Code generated - DO NOT EDIT.
 // This file is a generated binding and any manual changes will be lost.
 
-package contract
+package contracts
 
 import (
 	"errors"
@@ -29,113 +29,113 @@ var (
 	_ = abi.ConvertType
 )
 
-// ContractMetaData contains all meta data concerning the Contract contract.
-var ContractMetaData = &bind.MetaData{
+// VeCakeRewardMetaData contains all meta data concerning the VeCakeReward contract.
+var VeCakeRewardMetaData = &bind.MetaData{
 	ABI: "[{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"_revenueSharingPools\",\"type\":\"address[]\"},{\"internalType\":\"address\",\"name\":\"_for\",\"type\":\"address\"}],\"name\":\"claimMultiple\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"_revenueSharingPools\",\"type\":\"address[]\"},{\"internalType\":\"address\",\"name\":\"_for\",\"type\":\"address\"}],\"name\":\"claimMultipleWithoutProxy\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
 }
 
-// ContractABI is the input ABI used to generate the binding from.
-// Deprecated: Use ContractMetaData.ABI instead.
-var ContractABI = ContractMetaData.ABI
+// VeCakeRewardABI is the input ABI used to generate the binding from.
+// Deprecated: Use VeCakeRewardMetaData.ABI instead.
+var VeCakeRewardABI = VeCakeRewardMetaData.ABI
 
-// Contract is an auto generated Go binding around an Ethereum contract.
-type Contract struct {
-	ContractCaller     // Read-only binding to the contract
-	ContractTransactor // Write-only binding to the contract
-	ContractFilterer   // Log filterer for contract events
+// VeCakeReward is an auto generated Go binding around an Ethereum contract.
+type VeCakeReward struct {
+	VeCakeRewardCaller     // Read-only binding to the contract
+	VeCakeRewardTransactor // Write-only binding to the contract
+	VeCakeRewardFilterer   // Log filterer for contract events
 }
 
-// ContractCaller is an auto generated read-only Go binding around an Ethereum contract.
-type ContractCaller struct {
+// VeCakeRewardCaller is an auto generated read-only Go binding around an Ethereum contract.
+type VeCakeRewardCaller struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// ContractTransactor is an auto generated write-only Go binding around an Ethereum contract.
-type ContractTransactor struct {
+// VeCakeRewardTransactor is an auto generated write-only Go binding around an Ethereum contract.
+type VeCakeRewardTransactor struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// ContractFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
-type ContractFilterer struct {
+// VeCakeRewardFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
+type VeCakeRewardFilterer struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// ContractSession is an auto generated Go binding around an Ethereum contract,
+// VeCakeRewardSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
-type ContractSession struct {
-	Contract     *Contract         // Generic contract binding to set the session for
+type VeCakeRewardSession struct {
+	Contract     *VeCakeReward     // Generic contract binding to set the session for
 	CallOpts     bind.CallOpts     // Call options to use throughout this session
 	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
 }
 
-// ContractCallerSession is an auto generated read-only Go binding around an Ethereum contract,
+// VeCakeRewardCallerSession is an auto generated read-only Go binding around an Ethereum contract,
 // with pre-set call options.
-type ContractCallerSession struct {
-	Contract *ContractCaller // Generic contract caller binding to set the session for
-	CallOpts bind.CallOpts   // Call options to use throughout this session
+type VeCakeRewardCallerSession struct {
+	Contract *VeCakeRewardCaller // Generic contract caller binding to set the session for
+	CallOpts bind.CallOpts       // Call options to use throughout this session
 }
 
-// ContractTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
+// VeCakeRewardTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
 // with pre-set transact options.
-type ContractTransactorSession struct {
-	Contract     *ContractTransactor // Generic contract transactor binding to set the session for
-	TransactOpts bind.TransactOpts   // Transaction auth options to use throughout this session
+type VeCakeRewardTransactorSession struct {
+	Contract     *VeCakeRewardTransactor // Generic contract transactor binding to set the session for
+	TransactOpts bind.TransactOpts       // Transaction auth options to use throughout this session
 }
 
-// ContractRaw is an auto generated low-level Go binding around an Ethereum contract.
-type ContractRaw struct {
-	Contract *Contract // Generic contract binding to access the raw methods on
+// VeCakeRewardRaw is an auto generated low-level Go binding around an Ethereum contract.
+type VeCakeRewardRaw struct {
+	Contract *VeCakeReward // Generic contract binding to access the raw methods on
 }
 
-// ContractCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
-type ContractCallerRaw struct {
-	Contract *ContractCaller // Generic read-only contract binding to access the raw methods on
+// VeCakeRewardCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
+type VeCakeRewardCallerRaw struct {
+	Contract *VeCakeRewardCaller // Generic read-only contract binding to access the raw methods on
 }
 
-// ContractTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
-type ContractTransactorRaw struct {
-	Contract *ContractTransactor // Generic write-only contract binding to access the raw methods on
+// VeCakeRewardTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
+type VeCakeRewardTransactorRaw struct {
+	Contract *VeCakeRewardTransactor // Generic write-only contract binding to access the raw methods on
 }
 
-// NewContract creates a new instance of Contract, bound to a specific deployed contract.
-func NewContract(address common.Address, backend bind.ContractBackend) (*Contract, error) {
-	contract, err := bindContract(address, backend, backend, backend)
+// NewVeCakeReward creates a new instance of VeCakeReward, bound to a specific deployed contract.
+func NewVeCakeReward(address common.Address, backend bind.ContractBackend) (*VeCakeReward, error) {
+	contract, err := bindVeCakeReward(address, backend, backend, backend)
 	if err != nil {
 		return nil, err
 	}
-	return &Contract{ContractCaller: ContractCaller{contract: contract}, ContractTransactor: ContractTransactor{contract: contract}, ContractFilterer: ContractFilterer{contract: contract}}, nil
+	return &VeCakeReward{VeCakeRewardCaller: VeCakeRewardCaller{contract: contract}, VeCakeRewardTransactor: VeCakeRewardTransactor{contract: contract}, VeCakeRewardFilterer: VeCakeRewardFilterer{contract: contract}}, nil
 }
 
-// NewContractCaller creates a new read-only instance of Contract, bound to a specific deployed contract.
-func NewContractCaller(address common.Address, caller bind.ContractCaller) (*ContractCaller, error) {
-	contract, err := bindContract(address, caller, nil, nil)
+// NewVeCakeRewardCaller creates a new read-only instance of VeCakeReward, bound to a specific deployed contract.
+func NewVeCakeRewardCaller(address common.Address, caller bind.ContractCaller) (*VeCakeRewardCaller, error) {
+	contract, err := bindVeCakeReward(address, caller, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &ContractCaller{contract: contract}, nil
+	return &VeCakeRewardCaller{contract: contract}, nil
 }
 
-// NewContractTransactor creates a new write-only instance of Contract, bound to a specific deployed contract.
-func NewContractTransactor(address common.Address, transactor bind.ContractTransactor) (*ContractTransactor, error) {
-	contract, err := bindContract(address, nil, transactor, nil)
+// NewVeCakeRewardTransactor creates a new write-only instance of VeCakeReward, bound to a specific deployed contract.
+func NewVeCakeRewardTransactor(address common.Address, transactor bind.ContractTransactor) (*VeCakeRewardTransactor, error) {
+	contract, err := bindVeCakeReward(address, nil, transactor, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &ContractTransactor{contract: contract}, nil
+	return &VeCakeRewardTransactor{contract: contract}, nil
 }
 
-// NewContractFilterer creates a new log filterer instance of Contract, bound to a specific deployed contract.
-func NewContractFilterer(address common.Address, filterer bind.ContractFilterer) (*ContractFilterer, error) {
-	contract, err := bindContract(address, nil, nil, filterer)
+// NewVeCakeRewardFilterer creates a new log filterer instance of VeCakeReward, bound to a specific deployed contract.
+func NewVeCakeRewardFilterer(address common.Address, filterer bind.ContractFilterer) (*VeCakeRewardFilterer, error) {
+	contract, err := bindVeCakeReward(address, nil, nil, filterer)
 	if err != nil {
 		return nil, err
 	}
-	return &ContractFilterer{contract: contract}, nil
+	return &VeCakeRewardFilterer{contract: contract}, nil
 }
 
-// bindContract binds a generic wrapper to an already deployed contract.
-func bindContract(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
-	parsed, err := ContractMetaData.GetAbi()
+// bindVeCakeReward binds a generic wrapper to an already deployed contract.
+func bindVeCakeReward(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := VeCakeRewardMetaData.GetAbi()
 	if err != nil {
 		return nil, err
 	}
@@ -146,78 +146,78 @@ func bindContract(address common.Address, caller bind.ContractCaller, transactor
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_Contract *ContractRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
-	return _Contract.Contract.ContractCaller.contract.Call(opts, result, method, params...)
+func (_VeCakeReward *VeCakeRewardRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _VeCakeReward.Contract.VeCakeRewardCaller.contract.Call(opts, result, method, params...)
 }
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_Contract *ContractRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _Contract.Contract.ContractTransactor.contract.Transfer(opts)
+func (_VeCakeReward *VeCakeRewardRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _VeCakeReward.Contract.VeCakeRewardTransactor.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_Contract *ContractRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _Contract.Contract.ContractTransactor.contract.Transact(opts, method, params...)
+func (_VeCakeReward *VeCakeRewardRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _VeCakeReward.Contract.VeCakeRewardTransactor.contract.Transact(opts, method, params...)
 }
 
 // Call invokes the (constant) contract method with params as input values and
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_Contract *ContractCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
-	return _Contract.Contract.contract.Call(opts, result, method, params...)
+func (_VeCakeReward *VeCakeRewardCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _VeCakeReward.Contract.contract.Call(opts, result, method, params...)
 }
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_Contract *ContractTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _Contract.Contract.contract.Transfer(opts)
+func (_VeCakeReward *VeCakeRewardTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _VeCakeReward.Contract.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_Contract *ContractTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _Contract.Contract.contract.Transact(opts, method, params...)
+func (_VeCakeReward *VeCakeRewardTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _VeCakeReward.Contract.contract.Transact(opts, method, params...)
 }
 
 // ClaimMultiple is a paid mutator transaction binding the contract method 0x39184476.
 //
 // Solidity: function claimMultiple(address[] _revenueSharingPools, address _for) returns()
-func (_Contract *ContractTransactor) ClaimMultiple(opts *bind.TransactOpts, _revenueSharingPools []common.Address, _for common.Address) (*types.Transaction, error) {
-	return _Contract.contract.Transact(opts, "claimMultiple", _revenueSharingPools, _for)
+func (_VeCakeReward *VeCakeRewardTransactor) ClaimMultiple(opts *bind.TransactOpts, _revenueSharingPools []common.Address, _for common.Address) (*types.Transaction, error) {
+	return _VeCakeReward.contract.Transact(opts, "claimMultiple", _revenueSharingPools, _for)
 }
 
 // ClaimMultiple is a paid mutator transaction binding the contract method 0x39184476.
 //
 // Solidity: function claimMultiple(address[] _revenueSharingPools, address _for) returns()
-func (_Contract *ContractSession) ClaimMultiple(_revenueSharingPools []common.Address, _for common.Address) (*types.Transaction, error) {
-	return _Contract.Contract.ClaimMultiple(&_Contract.TransactOpts, _revenueSharingPools, _for)
+func (_VeCakeReward *VeCakeRewardSession) ClaimMultiple(_revenueSharingPools []common.Address, _for common.Address) (*types.Transaction, error) {
+	return _VeCakeReward.Contract.ClaimMultiple(&_VeCakeReward.TransactOpts, _revenueSharingPools, _for)
 }
 
 // ClaimMultiple is a paid mutator transaction binding the contract method 0x39184476.
 //
 // Solidity: function claimMultiple(address[] _revenueSharingPools, address _for) returns()
-func (_Contract *ContractTransactorSession) ClaimMultiple(_revenueSharingPools []common.Address, _for common.Address) (*types.Transaction, error) {
-	return _Contract.Contract.ClaimMultiple(&_Contract.TransactOpts, _revenueSharingPools, _for)
+func (_VeCakeReward *VeCakeRewardTransactorSession) ClaimMultiple(_revenueSharingPools []common.Address, _for common.Address) (*types.Transaction, error) {
+	return _VeCakeReward.Contract.ClaimMultiple(&_VeCakeReward.TransactOpts, _revenueSharingPools, _for)
 }
 
 // ClaimMultipleWithoutProxy is a paid mutator transaction binding the contract method 0xc5bc4a71.
 //
 // Solidity: function claimMultipleWithoutProxy(address[] _revenueSharingPools, address _for) returns()
-func (_Contract *ContractTransactor) ClaimMultipleWithoutProxy(opts *bind.TransactOpts, _revenueSharingPools []common.Address, _for common.Address) (*types.Transaction, error) {
-	return _Contract.contract.Transact(opts, "claimMultipleWithoutProxy", _revenueSharingPools, _for)
+func (_VeCakeReward *VeCakeRewardTransactor) ClaimMultipleWithoutProxy(opts *bind.TransactOpts, _revenueSharingPools []common.Address, _for common.Address) (*types.Transaction, error) {
+	return _VeCakeReward.contract.Transact(opts, "claimMultipleWithoutProxy", _revenueSharingPools, _for)
 }
 
 // ClaimMultipleWithoutProxy is a paid mutator transaction binding the contract method 0xc5bc4a71.
 //
 // Solidity: function claimMultipleWithoutProxy(address[] _revenueSharingPools, address _for) returns()
-func (_Contract *ContractSession) ClaimMultipleWithoutProxy(_revenueSharingPools []common.Address, _for common.Address) (*types.Transaction, error) {
-	return _Contract.Contract.ClaimMultipleWithoutProxy(&_Contract.TransactOpts, _revenueSharingPools, _for)
+func (_VeCakeReward *VeCakeRewardSession) ClaimMultipleWithoutProxy(_revenueSharingPools []common.Address, _for common.Address) (*types.Transaction, error) {
+	return _VeCakeReward.Contract.ClaimMultipleWithoutProxy(&_VeCakeReward.TransactOpts, _revenueSharingPools, _for)
 }
 
 // ClaimMultipleWithoutProxy is a paid mutator transaction binding the contract method 0xc5bc4a71.
 //
 // Solidity: function claimMultipleWithoutProxy(address[] _revenueSharingPools, address _for) returns()
-func (_Contract *ContractTransactorSession) ClaimMultipleWithoutProxy(_revenueSharingPools []common.Address, _for common.Address) (*types.Transaction, error) {
-	return _Contract.Contract.ClaimMultipleWithoutProxy(&_Contract.TransactOpts, _revenueSharingPools, _for)
+func (_VeCakeReward *VeCakeRewardTransactorSession) ClaimMultipleWithoutProxy(_revenueSharingPools []common.Address, _for common.Address) (*types.Transaction, error) {
+	return _VeCakeReward.Contract.ClaimMultipleWithoutProxy(&_VeCakeReward.TransactOpts, _revenueSharingPools, _for)
 }
