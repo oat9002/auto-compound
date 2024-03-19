@@ -19,6 +19,7 @@ type PancakeSwapService struct {
 	chainId               uint64
 	gasLimit              uint64
 	gasPriceThreshold     uint64
+	veCakeRewardContract  *contracts.VeCakeReward
 }
 
 type UserInfo struct {
@@ -32,6 +33,13 @@ type UserInfo struct {
 	Locked               bool
 	LockedAmount         *big.Int
 }
+
+const masterChefContractAddress = "0x73feaa1eE314F8c655E354234017bE2193C9E24E"
+const smartChefInitializableContractAddress = "0x6f660C58723922c6f866a058199FF4881019B4B5"
+const cakePoolContractAddress = "0x45c54210128a065de780C4B0Df3d16664f7f859e"
+const veCakeRewardContractAddress = "0x9cac9745731d1Cf2B483f257745A512f0938DD01"
+
+var veCakeRewardPoolAddresses = []string{"0x9cac9745731d1Cf2B483f257745A512f0938DD01", "0xCaF4e48a4Cb930060D0c3409F40Ae7b34d2AbE2D"}
 
 func NewPancakeSwapService(client *ethclient.Client, chainId uint64, gasLimit uint64, gasPriceThreshold uint64) (*PancakeSwapService, error) {
 	masterChefContract, err := getMasterChefContract(client)
@@ -52,6 +60,12 @@ func NewPancakeSwapService(client *ethclient.Client, chainId uint64, gasLimit ui
 		return nil, err
 	}
 
+	veCakeRewardContract, err := getVeCakeRewardContract(client)
+
+	if err != nil {
+		return nil, err
+	}
+
 	service := &PancakeSwapService{
 		client:                client,
 		masterChefContract:    masterChefContract,
@@ -60,13 +74,14 @@ func NewPancakeSwapService(client *ethclient.Client, chainId uint64, gasLimit ui
 		chainId:               chainId,
 		gasLimit:              gasLimit,
 		gasPriceThreshold:     gasPriceThreshold,
+		veCakeRewardContract:  veCakeRewardContract,
 	}
 
 	return service, nil
 }
 
 func getMasterChefContract(client *ethclient.Client) (*contracts.MasterChef, error) {
-	pancakeMainStakingAddress := common.HexToAddress("0x73feaa1eE314F8c655E354234017bE2193C9E24E")
+	pancakeMainStakingAddress := common.HexToAddress(masterChefContractAddress)
 	contract, err := contracts.NewMasterChef(pancakeMainStakingAddress, client)
 
 	if err != nil {
@@ -77,7 +92,7 @@ func getMasterChefContract(client *ethclient.Client) (*contracts.MasterChef, err
 }
 
 func getSmartChefInitializableContract(client *ethclient.Client) (*contracts.SmartChefInitializable, error) {
-	contractAddress := common.HexToAddress("0x6f660C58723922c6f866a058199FF4881019B4B5")
+	contractAddress := common.HexToAddress(smartChefInitializableContractAddress)
 	contract, err := contracts.NewSmartChefInitializable(contractAddress, client)
 
 	if err != nil {
@@ -88,11 +103,22 @@ func getSmartChefInitializableContract(client *ethclient.Client) (*contracts.Sma
 }
 
 func getCakePoolContract(client *ethclient.Client) (*contracts.CakePool, error) {
-	contractAddress := common.HexToAddress("0x45c54210128a065de780C4B0Df3d16664f7f859e")
+	contractAddress := common.HexToAddress(cakePoolContractAddress)
 	contract, err := contracts.NewCakePool(contractAddress, client)
 
 	if err != nil {
 		return nil, fmt.Errorf("create cakePool contract failed, %w", err)
+	}
+
+	return contract, nil
+}
+
+func getVeCakeRewardContract(client *ethclient.Client) (*contracts.VeCakeReward, error) {
+	contractAddress := common.HexToAddress(veCakeRewardContractAddress)
+	contract, err := contracts.NewVeCakeReward(contractAddress, client)
+
+	if err != nil {
+		return nil, fmt.Errorf("create veCakeReward contract failed, %w", err)
 	}
 
 	return contract, nil
@@ -139,4 +165,26 @@ func (p *PancakeSwapService) GetEarningCakeSinceLastActionFromCakePool(address c
 	earningCake.Sub(stakedCake, userInfo.CakeAtLastUserAction)
 
 	return earningCake, nil
+}
+
+func (p *PancakeSwapService) ClaimVeReward(address common.Address, privateKey string) error {
+	txOps, err := utils.GetDefautlTransactionOpts(p.client, privateKey, p.chainId, p.gasLimit, p.gasPriceThreshold)
+
+	if err != nil {
+		return fmt.Errorf("get default transaction opts failed, %w", err)
+	}
+
+	poolAddresses := []common.Address{}
+
+	for _, poolAddress := range veCakeRewardPoolAddresses {
+		poolAddresses = append(poolAddresses, common.HexToAddress(poolAddress))
+	}
+
+	_, err = p.veCakeRewardContract.ClaimMultiple(txOps, poolAddresses, address)
+
+	if err != nil {
+		return fmt.Errorf("claim ve reward failed, %w", err)
+	}
+
+	return nil
 }
