@@ -1,42 +1,42 @@
 name: upload_artifacts
 
 on:
-    push:
-        tags:
-            - "v*"
+  push:
+    tags:
+      - "v*"
 
 jobs:
-    upload_artifacts:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v3
+  upload_artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
 
-            - name: Set up Go
-              uses: actions/setup-go@v2
-              with:
-                  go-version: 1.19
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
 
-            - name: Build Executable files
-              run: make
+      - name: Build Executable files
+        run: make
 
-            - name: Set GitHub user
-              run: |
-                  git config --global user.name 'oat9002'
-                  git config --global user.email 'oat9002@hotmail.com'
+      - name: Set GitHub user
+        run: |
+          git config --global user.name 'oat9002'
+          git config --global user.email 'oat9002@hotmail.com'
 
-            - name: Publish GitHub Release
-              uses: ncipollo/release-action@v1
-              with:
-                  artifacts: "auto-compound*"
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  allowUpdates: true
-                  omitBody: true
-                  omitBodyDuringUpdate: true
-                  omitName: true
-                  omitNameDuringUpdate: true
+      - name: Publish GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "auto-compound*"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          allowUpdates: true
+          omitBody: true
+          omitBodyDuringUpdate: true
+          omitName: true
+          omitNameDuringUpdate: true
 
-    docker:
-        uses: ./.github/workflows/docker.yml
-        secrets:
-            DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-            DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+  docker:
+    uses: ./.github/workflows/docker.yml
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
